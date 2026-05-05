@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cover — Add Item to Section</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      font-size: var(--Sizes-Body);
+      color: var(--text-default);
+      background: var(--background-tertiary);
+      min-height: 100vh;
+    }
+
+    .app-bar {
+      background: var(--background-default);
+      border-bottom: 1px solid var(--border-default);
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-page-md);
+      gap: var(--spacing-components-xs);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .app-bar-logo { display: flex; align-items: center; gap: var(--spacing-components-xs); }
+    .roofr-wordmark { font-size: var(--Sizes-Body); font-weight: 500; color: var(--text-highlight); letter-spacing: -0.2px; }
+    .app-bar-sep { color: var(--border-default); font-size: 20px; font-weight: 300; margin: 0 2px; user-select: none; }
+    .app-bar-context { font-size: var(--Sizes-Small); color: var(--text-muted); }
+    .app-bar-badge {
+      margin-left: auto;
+      background: var(--background-accent-primary);
+      border: 1px solid var(--border-primary-subtle);
+      color: var(--text-link);
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-circle);
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: var(--spacing-page-xl) var(--spacing-page-md);
+    }
+
+    .cover-card {
+      background: var(--components-card-default-fill);
+      border: 1px solid var(--components-card-default-border);
+      border-radius: var(--components-card-radius-md);
+      box-shadow: 0 4px 36px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    .cover-header {
+      padding: var(--spacing-page-lg) var(--spacing-page-lg) var(--spacing-page-md);
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .cover-eyebrow {
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      color: var(--text-link);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: var(--spacing-components-xs);
+    }
+
+    .cover-title {
+      font-size: var(--Sizes-H2);
+      font-weight: 500;
+      color: var(--text-highlight);
+      line-height: 1.2;
+      margin-bottom: var(--spacing-components-sm);
+    }
+
+    .cover-meta {
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-inactive);
+    }
+
+    .cover-body {
+      padding: var(--spacing-page-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-page-lg);
+    }
+
+    .section-label {
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-components-md);
+    }
+
+    .problem-text {
+      font-size: var(--Sizes-Body);
+      color: var(--text-default);
+      line-height: 1.65;
+      max-width: 620px;
+    }
+
+    /* States grid */
+    .states-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-components-sm);
+    }
+
+    .state-row {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-components-md);
+      padding: var(--spacing-components-sm) var(--spacing-components-md);
+      border-radius: var(--radius-md);
+      background: var(--background-secondary);
+    }
+
+    .state-icon {
+      font-size: 14px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .state-name {
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-highlight);
+      line-height: 1.4;
+    }
+
+    .state-desc {
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 1px;
+    }
+
+    /* Priority sections */
+    .priority-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-components-xs);
+    }
+
+    .priority-label {
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: var(--spacing-components-xs) 0;
+      border-bottom: 1px solid var(--border-default);
+      margin-bottom: var(--spacing-components-xs);
+    }
+
+    .needed-row {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-components-md);
+      padding: var(--spacing-components-sm) var(--spacing-components-md);
+      border-radius: var(--radius-md);
+    }
+
+    .needed-row.high { background: rgba(220,53,69,0.05); }
+    .needed-row.medium { background: rgba(242,136,42,0.05); }
+    .needed-row.low { background: var(--background-secondary); }
+
+    .needed-check {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+      border: 1.5px solid var(--border-default);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .needed-name {
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-highlight);
+      line-height: 1.4;
+    }
+
+    .needed-desc {
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+
+    .needed-source {
+      font-size: 10px;
+      color: var(--text-inactive);
+      margin-top: 3px;
+      font-style: italic;
+    }
+
+    /* Sources */
+    .sources-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-components-xs);
+    }
+
+    .source-row {
+      display: flex;
+      gap: var(--spacing-components-md);
+      font-size: var(--Sizes-Small);
+    }
+
+    .source-key {
+      font-weight: 500;
+      color: var(--text-muted);
+      min-width: 60px;
+    }
+
+    .source-val {
+      color: var(--text-default);
+    }
+
+    .source-val.unavailable {
+      color: var(--text-inactive);
+      font-style: italic;
+    }
+
+    /* Divider */
+    .section-divider {
+      height: 1px;
+      background: var(--border-default);
+    }
+
+    /* CTA */
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-components-md);
+      padding-top: var(--spacing-components-sm);
+    }
+
+    .btn-explore {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-components-xs);
+      height: 40px;
+      padding: 0 var(--spacing-components-xxl);
+      background: var(--background-contrast);
+      color: var(--text-inverted-highlight);
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      border-radius: var(--radius-circle);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+      transition: background 150ms;
+    }
+    .btn-explore:hover { background: var(--background-gradients-alternative-start); }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-components-xs);
+      height: 40px;
+      padding: 0 var(--spacing-components-xl);
+      background: none;
+      color: var(--text-muted);
+      font-size: var(--Sizes-Small);
+      font-weight: 400;
+      border-radius: var(--radius-circle);
+      border: 1px solid var(--border-default);
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+      transition: background 150ms, color 150ms;
+    }
+    .btn-back:hover { background: var(--background-secondary); color: var(--text-default); }
+
+    .audit-date {
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-inactive);
+      margin-left: auto;
+    }
+    /* Prototype navigation */
+    .proto-nav {
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .proto-nav-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+    .proto-nav-links { margin-left: auto; display: flex; gap: 2px; }
+    .proto-nav-link {
+      font-size: 13px;
+      font-weight: 400;
+      color: #555;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: background 120ms, color 120ms;
+    }
+    .proto-nav-link:hover { background: rgba(0,0,0,0.05); color: #111; }
+    .proto-nav-link.active { font-weight: 600; color: #111; }
+    .proto-nav-link.not-chosen { text-decoration: line-through; color: #bbb; }
+    .proto-nav-link.not-chosen:hover { color: #888; }
+    .proto-nav-link.chosen::after { content: ' ✓'; font-size: 11px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+  <nav class="proto-nav">
+    <span class="proto-nav-title">Add Item to Section</span>
+    <div class="proto-nav-links">
+      <a href="cover.html" class="proto-nav-link active">Cover</a>
+      <a href="option-a.html" class="proto-nav-link not-chosen">Option A</a>
+      <a href="option-b.html" class="proto-nav-link not-chosen">Option B</a>
+      <a href="option-c.html" class="proto-nav-link chosen">Option C</a>
+    </div>
+  </nav>
+
+  <header class="app-bar">
+    <div class="app-bar-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1373E3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span class="roofr-wordmark">Roofr</span>
+    </div>
+    <span class="app-bar-sep">/</span>
+    <span class="app-bar-context">Proposals</span>
+    <span class="app-bar-sep">/</span>
+    <span class="app-bar-context">Add to Section — Cover</span>
+    <span class="app-bar-badge">Prototype</span>
+  </header>
+
+  <main class="page">
+    <div class="cover-card">
+
+      <div class="cover-header">
+        <div class="cover-eyebrow">Proposal Editor · UX Exploration</div>
+        <div class="cover-title">Add Item to Section</div>
+        <div class="cover-meta">Option C selected &nbsp;·&nbsp; Last audited: April 28, 2026</div>
+      </div>
+
+      <div class="cover-body">
+
+        <!-- Problem statement -->
+        <div>
+          <div class="section-label">Problem Statement</div>
+          <p class="problem-text">
+            When users click "+ Add Item" in a Roofr Proposal, the item is always appended to the bottom of the full list.
+            Getting it into a specific section requires drag-and-drop across potentially many rows — significant friction
+            for users building multi-section proposals. <strong>Option C</strong> solves this with two complementary paths:
+            a per-section <strong>+ button</strong> in the Actions column for zero-click direct adds, and a
+            <strong>section picker</strong> on the global footer button as a fallback when the target section is off-screen.
+          </p>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- States in prototype -->
+        <div>
+          <div class="section-label">States in This Prototype</div>
+          <div class="states-grid">
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Default / populated table</div>
+                <div class="state-desc">3 sections with items; both add affordances visible</div>
+              </div>
+            </div>
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Add via section + button</div>
+                <div class="state-desc">Inline row inserted at bottom of that section with catalog search</div>
+              </div>
+            </div>
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Add via global section picker</div>
+                <div class="state-desc">Picker opens from footer, section selected, inline row inserted with section flash</div>
+              </div>
+            </div>
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Picker open / close</div>
+                <div class="state-desc">Toggle on button click, close on outside click and Escape key</div>
+              </div>
+            </div>
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Inline catalog search</div>
+                <div class="state-desc">Dropdown with match highlighting, "Add new item" fallback for non-catalog items</div>
+              </div>
+            </div>
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Item committed (success)</div>
+                <div class="state-desc">Highlight-fade animation on row; count badge increments in picker</div>
+              </div>
+            </div>
+            <div class="state-row">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">No section option</div>
+                <div class="state-desc">"No section (end of list)" in picker appends item below all sections</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Already handled in real code -->
+        <div>
+          <div class="section-label" style="color: var(--text-success);">Already handled in production code</div>
+          <div class="states-grid">
+            <div class="state-row" style="background: var(--background-accent-success, rgba(39,160,66,0.06));">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Initial load skeleton</div>
+                <div class="state-desc"><code style="font-size:11px;">isFetchingData</code> flag + <code style="font-size:11px;">react-loading-skeleton</code> already wired in <code style="font-size:11px;">VariationItemsTable.tsx</code></div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-success, rgba(39,160,66,0.06));">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Empty table state</div>
+                <div class="state-desc"><code style="font-size:11px;">CustomNoRowsOverlay.tsx</code> — context-aware messages for proposal, template, and upgrade empty states</div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-success, rgba(39,160,66,0.06));">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Duplicate empty row prevention</div>
+                <div class="state-desc"><code style="font-size:11px;">hasEmptyRow</code> flag in <code style="font-size:11px;">QuoteDetails.tsx</code> — blocks "Add Item" while an unsaved row exists</div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-success, rgba(39,160,66,0.06));">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Read-only / locked states</div>
+                <div class="state-desc"><code style="font-size:11px;">isEditingDisabled</code>, <code style="font-size:11px;">variationTotalLocked</code>, <code style="font-size:11px;">showAddItemButton</code> — gates in <code style="font-size:11px;">AddItemActions.tsx</code> + <code style="font-size:11px;">useProposalEditorLock.ts</code></div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-success, rgba(39,160,66,0.06));">
+              <div class="state-icon">✅</div>
+              <div>
+                <div class="state-name">Validation & toast errors</div>
+                <div class="state-desc">Toast notifications for section name validation, discount errors, and field-level errors already handled in <code style="font-size:11px;">VariationItemsTable.tsx</code></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Decided -->
+        <div>
+          <div class="section-label" style="color: var(--text-link);">Decided — specs locked</div>
+          <div class="states-grid">
+            <div class="state-row" style="background: var(--background-accent-primary);">
+              <div class="state-icon">🔵</div>
+              <div>
+                <div class="state-name">Single section — skip picker, insert directly</div>
+                <div class="state-desc">When only one section exists, the global "Add item to section" button bypasses the picker entirely and inserts the new row directly into that section.</div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-primary);">
+              <div class="state-icon">🔵</div>
+              <div>
+                <div class="state-name">Hidden section — added items also hidden</div>
+                <div class="state-desc">Adding an item to a hidden section inherits <code style="font-size:11px;">is_visible: false</code>. The section stays selectable in the picker and its + button stays enabled — items just land hidden.</div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-primary);">
+              <div class="state-icon">🔵</div>
+              <div>
+                <div class="state-name">Long section name — truncate at 40 characters</div>
+                <div class="state-desc">Section names are capped at 40 characters in both the section header row and the picker option. Overflow is truncated with ellipsis.</div>
+              </div>
+            </div>
+            <div class="state-row" style="background: var(--background-accent-primary);">
+              <div class="state-icon">🔵</div>
+              <div>
+                <div class="state-name">Item save failure — error toast</div>
+                <div class="state-desc">If the API save fails after an item is committed, show an error toast with copy explaining why and prompting the user to try again. The row stays in place for retry.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- States still needed -->
+        <div>
+          <div class="section-label">States Still Needed</div>
+
+          <div class="priority-section" style="margin-bottom: var(--spacing-components-lg);">
+            <div class="priority-label">🔴 High priority — will appear in production</div>
+
+            <div class="needed-row high">
+              <div class="needed-check"></div>
+              <div>
+                <div class="needed-name">Picker overflow — many sections</div>
+                <div class="needed-desc">No max-height or scroll on the picker. With 6+ sections it will clip or overflow off the top of the viewport. Proposals with many headings will hit this immediately.</div>
+                <div class="needed-source">Source: option-c.html line 291–305 — no overflow or max-height · Real: HeadingGroup[] has no count limit</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="priority-section">
+            <div class="priority-label">⚪ Low priority / nice to have</div>
+
+            <div class="needed-row low">
+              <div class="needed-check"></div>
+              <div>
+                <div class="needed-name">Picker count decrement on delete</div>
+                <div class="needed-desc">The prototype only increments counts. In production, count should be driven off <code style="font-size:11px;">HeadingGroup.items.length</code> dynamically so deletes are reflected.</div>
+              </div>
+            </div>
+
+            <div class="needed-row low">
+              <div class="needed-check"></div>
+              <div>
+                <div class="needed-name">Singular / plural copy</div>
+                <div class="needed-desc">"1 item" vs "2 items" in the picker count badge — should use an i18n plural key consistent with the rest of the app.</div>
+              </div>
+            </div>
+
+            <div class="needed-row low">
+              <div class="needed-check"></div>
+              <div>
+                <div class="needed-name">Undo after commit</div>
+                <div class="needed-desc">Escape during inline editing removes the row, but after committing a name there is no undo. Not unique to this feature but worth noting for handoff.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Sources -->
+        <div>
+          <div class="section-label">Sources</div>
+          <div class="sources-list">
+            <div class="source-row">
+              <div class="source-key">Prototype</div>
+              <div class="source-val">option-c.html, PRD.md</div>
+            </div>
+            <div class="source-row">
+              <div class="source-key">Codebase</div>
+              <div class="source-val">
+                QuoteDetailsSection/components/AddItemActions/AddItemActions.tsx<br>
+                Estimates/services/QuoteDetailsService/QuoteDetailsService.ts<br>
+                reducers/quoteDetailReducer.ts<br>
+                VariationItemsTable/VariationItemsTable.tsx<br>
+                QuoteDetails/QuoteDetails.tsx
+              </div>
+            </div>
+            <div class="source-row">
+              <div class="source-key">Key finding</div>
+              <div class="source-val">Backend already accepts <code style="font-size:11px;">heading_id</code> on item create. The only change needed is passing it from the UI. <code style="font-size:11px;">addEmptyQuoteDetail()</code> in QuoteDetailsService.ts line 74 always targets the last heading — one optional param fixes it.</div>
+            </div>
+            <div class="source-row">
+              <div class="source-key">Jira</div>
+              <div class="source-val unavailable">Not checked this session</div>
+            </div>
+            <div class="source-row">
+              <div class="source-key">Figma</div>
+              <div class="source-val unavailable">No links provided</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- CTA -->
+        <div class="cta-row">
+          <a href="option-c.html" class="btn-explore">
+            Open Option C
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+          <a href="index.html" class="btn-back">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            All options
+          </a>
+          <div class="audit-date">Audited April 28, 2026</div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

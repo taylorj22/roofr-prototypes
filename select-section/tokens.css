@@ -1,0 +1,261 @@
+/* Roofr Design System Tokens — generated from tokens.md */
+@font-face {
+  font-family: 'Circular Std';
+  src: url('./CircularStd-Book.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Circular Std';
+  src: url('./CircularStd-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
+
+:root {
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --radius-circle: 999px;
+
+  /* Dimensions */
+  --dimensions-components-xxs: 8px;
+  --dimensions-components-xs: 12px;
+  --dimensions-components-sm: 16px;
+  --dimensions-components-md: 20px;
+  --dimensions-components-lg: 24px;
+  --dimensions-components-xl: 32px;
+  --dimensions-components-xxl: 48px;
+
+  /* Spacing – components */
+  --spacing-components-xxxl: 32px;
+  --spacing-components-xxl: 24px;
+  --spacing-components-xl: 20px;
+  --spacing-components-lg: 16px;
+  --spacing-components-md: 12px;
+  --spacing-components-sm: 10px;
+  --spacing-components-xs: 8px;
+  --spacing-components-xxs: 6px;
+  --spacing-components-xxxs: 4px;
+
+  /* Spacing – page */
+  --spacing-page-xxl: 60px;
+  --spacing-page-xl: 40px;
+  --spacing-page-lg: 32px;
+  --spacing-page-md: 24px;
+  --spacing-page-sm: 16px;
+  --spacing-page-xs: 8px;
+
+  /* Font sizes */
+  --Sizes-H1: 40px;
+  --Sizes-H2: 24px;
+  --Sizes-H3: 20px;
+  --Sizes-H4: 18px;
+  --Sizes-Body: 16px;
+  --Sizes-Small: 13px;
+  --Sizes-Smaller: 11px;
+  --Sizes-Fine-print: 9px;
+
+  /* Breakpoints */
+  --resolution-breakpoints-bp-sm: 640px;
+  --resolution-breakpoints-bp-md: 768px;
+  --resolution-breakpoints-bp-lg: 1024px;
+  --resolution-breakpoints-bp-xl: 1280px;
+  --resolution-breakpoints-bp-xxl: 1536px;
+
+  /* Semantic – Text */
+  --text-default: #28373E;
+  --text-highlight: #0B0F12;
+  --text-muted: #6B7980;
+  --text-inactive: #A6A8A9;
+  --text-success: #269F42;
+  --text-inverted: #EDF0F2;
+  --text-inverted-highlight: #FFFFFF;
+  --text-danger: #D13242;
+  --text-danger-hover: #9A2530;
+  --text-danger-disabled: #E88B94;
+  --text-link: #126DD8;
+  --text-link-hover: #0D509F;
+  --text-link-disabled: #89B9F1;
+
+  /* Semantic – Background */
+  --background-default: #FFFFFF;
+  --background-secondary: #F4F5F5;
+  --background-tertiary: #FAFBFB;
+  --background-quaternary: #EDF0F2;
+  --background-contrast: #1373E3;
+  --background-inverted: #0B0F12;
+  --background-overlay: rgba(0, 0, 0, 0.3);
+  --background-accent-primary: #F3F8FD;
+  --background-accent-success: #F4FBF6;
+  --background-accent-danger: #FDF5F6;
+  --background-accent-upgrade: #FFFAED;
+  --background-gradients-primary-start: #1373E3;
+  --background-gradients-primary-end: #0D509F;
+  --background-gradients-alternative-start: #126DD8;
+  --background-gradients-alternative-end: #0A3971;
+  --background-gradients-subtle-start: #FFFFFF;
+  --background-gradients-subtle-end: #EDF0F2;
+  --background-gradients-inverted-start: #0B0F12;
+  --background-gradients-inverted-end: #28373E;
+
+  /* Semantic – Border */
+  --border-default: #E1E4E6;
+  --border-muted: #6B7980;
+  --border-primary: #1373E3;
+  --border-primary-subtle: #89B9F1;
+  --border-danger: #DC3545;
+  --border-danger-subtle: #F5C2C7;
+  --border-success: #28A745;
+  --border-success-subtle: #BFE5C7;
+
+  /* Icon */
+  --icon-stroke-thick: 2.25px;
+  --icon-stroke-regular: 1.75px;
+  --icon-stroke-small: 1.25px;
+  --icon-stroke-tiny: 1px;
+  --icon-icon-default: #0B0F12;
+  --icon-icon-inverted: #FFFFFF;
+  --icon-icon-muted: #6B7980;
+  --icon-icon-inactive: #A6A8A9;
+  --icon-primary: #126DD8;
+  --icon-success: #28A745;
+  --icon-warning: #C26D22;
+  --icon-error: #D13242;
+  --icon-accent-primary: #E7F1FC;
+
+  /* Components – Button */
+  --components-button-primary-disabled: #89B9F1;
+  --components-button-secondary: #F4F5F5;
+  --components-button-secondary-hover: #E1E4E6;
+  --components-button-outline: #FFFFFF;
+  --components-button-outline-hover: #E7F1FC;
+  --components-button-alternative: #E7F1FC;
+  --components-button-alternative-hover: #B8D5F7;
+  --components-button-danger: #D13242;
+  --components-button-danger-hover: #9A2530;
+  --components-button-icon-size: 21px;
+  --components-button-icon-size-small: 15px;
+
+  /* Components – Card */
+  --components-card-default-fill: #FFFFFF;
+  --components-card-hover-fill: #F3F8FD;
+  --components-card-active-fill: #F3F8FD;
+  --components-card-muted-fill: #FAFBFB;
+  --components-card-default-border: #E1E4E6;
+  --components-card-default-hover-border: #1373E3;
+  --components-card-default-active-border: #89B9F1;
+  --components-card-padding-xs: 8px;
+  --components-card-padding-sm: 16px;
+  --components-card-padding-md: 24px;
+  --components-card-padding-lg: 32px;
+  --components-card-radius-sm: 8px;
+  --components-card-radius-md: 16px;
+
+  /* Components – Input */
+  --components-input-background-default: #FFFFFF;
+  --components-input-background-disabled: #F4F5F5;
+  --components-input-border-default: #E1E4E6;
+  --components-input-border-hover: #89B9F1;
+  --components-input-border-active: #1373E3;
+  --components-input-content-default: #28373E;
+  --components-input-content-secondary: #6B7980;
+  --components-input-content-placeholder: #A6A8A9;
+  --components-input-radius: 4px;
+
+  /* Components – Table */
+  --components-table-background-normal: #FFFFFF;
+  --components-table-background-alternative: #FAFBFB;
+  --components-table-background-hover: #F4F5F5;
+  --components-table-background-disabled: #EDF0F2;
+  --components-table-divider-fill: #E1E4E6;
+  --components-table-header-cell-height: 48px;
+  --components-table-content-cell-height: 60px;
+
+  /* Components – Dropdown Menu */
+  --components-Menu_Dropdown-Default-fill: #FFFFFF;
+  --components-Menu_Dropdown-Default-hover: #F4F5F5;
+  --components-Menu_Dropdown-Selected-fill: #F3F8FD;
+  --components-Menu_Dropdown-Border-fill: #E1E4E6;
+  --components-Menu_Dropdown-Text_title-default: #28373E;
+  --components-Menu_Dropdown-Text_body-default: #6B7980;
+
+  /* Components – Tags */
+  --components-tag-thumbnail-muted-fill: #EDF0F2;
+  --components-tag-thumbnail-muted-text: #474849;
+  --components-tag-thumbnail-blue-fill: #D0E3F9;
+  --components-tag-thumbnail-blue-text: #0B4588;
+
+  /* Hint / Toast */
+  --components-hint-toast-banner-primary-fill: #F3F8FD;
+  --components-hint-toast-banner-primary-outline: #89B9F1;
+  --components-hint-toast-banner-primary-icon: #126DD8;
+
+  /* Primitives */
+  --roofr-white: #FFFFFF;
+  --roofr-graphite: #28373E;
+  --roofr-midnight: #0B0F12;
+  --roofr-muted: #6B7980;
+  --roofr-black: #000000;
+  --roofr-blue-5: #F3F8FD;
+  --roofr-blue-10: #E7F1FC;
+  --roofr-blue-20: #D0E3F9;
+  --roofr-blue-30: #B8D5F7;
+  --roofr-blue-50: #89B9F1;
+  --roofr-blue: #1373E3;
+  --roofr-blue-5B: #126DD8;
+  --roofr-blue-20B: #0F5CB6;
+  --roofr-blue-30B: #0D509F;
+  --roofr-blue-40B: #0B4588;
+  --roofr-blue-50B: #0A3971;
+  --roofr-blue-60B: #082E5B;
+  --roofr-blue-70B: #062244;
+  --roofr-mist-10: #FDFEFE;
+  --roofr-mist-20: #FBFCFC;
+  --roofr-mist-30: #FAFBFB;
+  --roofr-mist-50: #F4F5F5;
+  --roofr-mist: #EDF0F2;
+  --roofr-mist-5B: #E1E4E6;
+  --roofr-mist-20B: #C4C4C4;
+  --roofr-mist-30B: #A6A8A9;
+  --roofr-mist-40B: #8E9091;
+  --roofr-mist-50B: #767879;
+  --roofr-mist-60B: #5F6061;
+  --roofr-mist-70B: #474849;
+  --roofr-mist-80B: #2F3030;
+  --roofr-mist-90B: #181818;
+  --roofr-green-5: #F4FBF6;
+  --roofr-green-10: #E9F6EC;
+  --roofr-green-20: #D4EDDA;
+  --roofr-green: #28A745;
+  --roofr-green-5B: #269F42;
+  --roofr-green-40B: #186429;
+  --roofr-green-60B: #0F3E19;
+  --roofr-red-5: #FDF5F6;
+  --roofr-red-10: #FCEBEC;
+  --roofr-red-20: #F8D7DA;
+  --roofr-red: #DC3545;
+  --roofr-red-5B: #D13242;
+  --roofr-red-40B: #842029;
+  --roofr-orange: #F2882A;
+  --roofr-orange-30: #FBDBBF;
+  --roofr-orange-40B: #915219;
+  --roofr-yellow: #FFCE50;
+  --roofr-yellow-20: #FFF5DC;
+  --roofr-yellow-30: #FFF0CA;
+  --roofr-yellow-50B: #705B23;
+  --roofr-purple: #7846CE;
+  --roofr-purple-10: #ECE5F8;
+  --roofr-purple-50B: #2B1551;
+}
+
+@media (max-width: 990px) {
+  :root {
+    --Sizes-H1: 24px;
+    --Sizes-H2: 20px;
+    --Sizes-H3: 18px;
+    --Sizes-H4: 16px;
+  }
+}

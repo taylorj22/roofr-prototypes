@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Section — UX Exploration</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      font-size: var(--Sizes-Body);
+      color: var(--text-default);
+      background: var(--background-tertiary);
+      min-height: 100vh;
+    }
+
+    /* App bar */
+    .app-bar {
+      background: var(--background-default);
+      border-bottom: 1px solid var(--border-default);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-page-md);
+      gap: var(--spacing-components-xs);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .app-bar-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-components-xs);
+    }
+
+    .roofr-wordmark {
+      font-size: var(--Sizes-Body);
+      font-weight: 500;
+      color: var(--text-highlight);
+      letter-spacing: -0.2px;
+    }
+
+    .app-bar-sep {
+      color: var(--border-default);
+      font-size: 20px;
+      font-weight: 300;
+      margin: 0 2px;
+      user-select: none;
+    }
+
+    .app-bar-context {
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+    }
+
+    .app-bar-badge {
+      margin-left: auto;
+      background: var(--background-accent-primary);
+      border: 1px solid var(--border-primary-subtle);
+      color: var(--text-link);
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-circle);
+    }
+
+    /* Page content */
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: var(--spacing-page-xl) var(--spacing-page-md);
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: var(--spacing-page-xl);
+    }
+
+    .hero-eyebrow {
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-link);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: var(--spacing-components-xs);
+    }
+
+    .hero h1 {
+      font-size: var(--Sizes-H2);
+      font-weight: 500;
+      color: var(--text-highlight);
+      line-height: 1.2;
+      margin-bottom: var(--spacing-components-md);
+    }
+
+    .hero p {
+      font-size: var(--Sizes-Body);
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Context hint */
+    .context-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-components-sm);
+      background: var(--background-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-components-md) var(--spacing-components-lg);
+      margin-bottom: var(--spacing-page-lg);
+      max-width: 680px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .context-hint svg {
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: var(--icon-icon-muted);
+    }
+
+    .context-hint-text {
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .context-hint-text strong {
+      font-weight: 500;
+      color: var(--text-default);
+    }
+
+    /* Cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-page-md);
+    }
+
+    .option-card {
+      background: var(--components-card-default-fill);
+      border: 1px solid var(--components-card-default-border);
+      border-radius: var(--components-card-radius-md);
+      box-shadow: 0 4px 36px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .option-card:hover {
+      border-color: var(--components-card-default-hover-border);
+      box-shadow: 0 8px 40px rgba(19,115,227,0.12);
+      transform: translateY(-2px);
+    }
+
+    .option-card:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 24px rgba(19,115,227,0.1);
+    }
+
+    /* Card illustration area */
+    .card-illustration {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-illustration.option-a {
+      background: linear-gradient(145deg, #EBF4FF 0%, #F3F8FD 100%);
+    }
+
+    .card-illustration.option-b {
+      background: linear-gradient(145deg, #F0F9FF 0%, #EBF4FF 100%);
+    }
+
+    .card-illustration.option-c {
+      background: linear-gradient(145deg, #EEF7FF 0%, #E8F4FE 60%, #F0FAF2 100%);
+    }
+
+    /* Mini table illustrations */
+    .mini-table {
+      width: 260px;
+      background: var(--background-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      font-size: 10px;
+      transform: scale(1);
+    }
+
+    .mini-section-header {
+      background: #F4F5F5;
+      border-bottom: 1px solid var(--border-default);
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mini-section-name {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+      color: var(--text-highlight);
+      font-size: 10px;
+    }
+
+    .mini-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .mini-add-btn {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      color: var(--text-link);
+      font-size: 9px;
+      font-weight: 500;
+      background: var(--background-accent-primary);
+      border: 1px solid var(--border-primary-subtle);
+      padding: 2px 6px;
+      border-radius: var(--radius-circle);
+    }
+
+    .mini-row {
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-default);
+      color: var(--text-default);
+      font-size: 10px;
+    }
+
+    .mini-row:last-child {
+      border-bottom: none;
+    }
+
+    .mini-row.new {
+      background: var(--background-accent-primary);
+      border-left: 2px solid var(--border-primary);
+      animation: newRowPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes newRowPulse {
+      0%, 100% { background: var(--background-accent-primary); }
+      50% { background: #E7F1FC; }
+    }
+
+    .mini-row-name {
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+
+    .mini-row-sub {
+      color: var(--text-muted);
+      font-size: 9px;
+    }
+
+    /* Option B: dropdown illustration */
+    .mini-dropdown {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--background-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      width: 180px;
+      overflow: hidden;
+      animation: floatUp 3s ease-in-out infinite;
+    }
+
+    @keyframes floatUp {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-4px); }
+    }
+
+    .mini-dropdown-item {
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-default);
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .mini-dropdown-item:last-child { border-bottom: none; }
+    .mini-dropdown-item.active {
+      background: var(--components-Menu_Dropdown-Selected-fill);
+      color: var(--text-link);
+      font-weight: 500;
+    }
+
+    .mini-dropdown-item .mini-dot { flex-shrink: 0; }
+
+    .mini-trigger-btn {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--background-default);
+      border: 1px dashed var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 4px 12px;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-link);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+    }
+
+    /* Option C — mini illustration: dark section header with pill add button */
+    .mini-table-c {
+      width: 240px;
+      background: var(--background-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      font-size: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mini-section-header-dark {
+      background: #28373E;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mini-section-name-light {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+      font-size: 10px;
+    }
+
+    .mini-add-pill {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      color: rgba(255,255,255,0.85);
+      font-size: 9px;
+      font-weight: 500;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .mini-picker-c {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--background-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      width: 160px;
+      overflow: hidden;
+      animation: floatUp 3s ease-in-out infinite;
+      z-index: 2;
+    }
+
+    .mini-trigger-c {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--background-default);
+      border: 1px dashed var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 4px 10px;
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--text-link);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      z-index: 1;
+    }
+
+    /* Card body */
+    .card-body {
+      padding: var(--spacing-page-md);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .option-tag {
+      display: inline-flex;
+      align-items: center;
+      background: var(--components-tag-thumbnail-muted-fill);
+      color: var(--components-tag-thumbnail-muted-text);
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: var(--radius-circle);
+      margin-bottom: var(--spacing-components-md);
+      width: fit-content;
+    }
+
+    .card-title {
+      font-size: var(--Sizes-H4);
+      font-weight: 500;
+      color: var(--text-highlight);
+      line-height: 1.3;
+      margin-bottom: var(--spacing-components-xs);
+    }
+
+    .card-desc {
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-components-xl);
+    }
+
+    .card-benefits {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-components-xs);
+      margin-bottom: var(--spacing-components-xxl);
+      flex: 1;
+    }
+
+    .card-benefits li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-components-xs);
+      font-size: var(--Sizes-Small);
+      color: var(--text-default);
+      line-height: 1.5;
+    }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      background: var(--background-accent-success);
+      border-radius: var(--radius-circle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .card-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-components-xs);
+      height: 44px;
+      padding: 0 var(--spacing-components-xxl);
+      background: var(--background-contrast);
+      color: var(--text-inverted-highlight);
+      font-size: var(--Sizes-Body);
+      font-weight: 500;
+      border-radius: var(--radius-circle);
+      border: none;
+      cursor: pointer;
+      transition: background 150ms ease;
+      text-decoration: none;
+      font-family: inherit;
+    }
+
+    .card-cta:hover {
+      background: var(--background-gradients-alternative-start);
+    }
+
+    .option-card:hover .card-cta {
+      background: var(--background-gradients-alternative-start);
+    }
+
+    /* Divider */
+    .card-divider {
+      height: 1px;
+      background: var(--border-default);
+      margin: 0 var(--spacing-page-md);
+    }
+
+    /* Footer */
+    .page-footer {
+      text-align: center;
+      margin-top: var(--spacing-page-xl);
+      font-size: var(--Sizes-Small);
+      color: var(--text-inactive);
+    }
+
+    .page-footer a {
+      color: var(--text-link);
+      text-decoration: none;
+    }
+
+    .page-footer a:hover {
+      text-decoration: underline;
+    }
+    /* Prototype navigation */
+    .proto-nav {
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .proto-nav-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+    .proto-nav-links { margin-left: auto; display: flex; gap: 2px; }
+    .proto-nav-link {
+      font-size: 13px;
+      font-weight: 400;
+      color: #555;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: background 120ms, color 120ms;
+    }
+    .proto-nav-link:hover { background: rgba(0,0,0,0.05); color: #111; }
+    .proto-nav-link.active { font-weight: 600; color: #111; }
+    .proto-nav-link.not-chosen { text-decoration: line-through; color: #bbb; }
+    .proto-nav-link.not-chosen:hover { color: #888; }
+    .proto-nav-link.chosen::after { content: ' ✓'; font-size: 11px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+  <nav class="proto-nav">
+    <span class="proto-nav-title">Add Item to Section</span>
+    <div class="proto-nav-links">
+      <a href="cover.html" class="proto-nav-link">Cover</a>
+      <a href="option-a.html" class="proto-nav-link not-chosen">Option A</a>
+      <a href="option-b.html" class="proto-nav-link not-chosen">Option B</a>
+      <a href="option-c.html" class="proto-nav-link chosen">Option C</a>
+    </div>
+  </nav>
+
+  <header class="app-bar">
+    <div class="app-bar-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1373E3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span class="roofr-wordmark">Roofr</span>
+    </div>
+    <span class="app-bar-sep">/</span>
+    <span class="app-bar-context">Proposals</span>
+    <span class="app-bar-sep">/</span>
+    <span class="app-bar-context">Add to Section — UX Exploration</span>
+    <span class="app-bar-badge">Prototype</span>
+  </header>
+
+  <main class="page">
+    <div class="hero">
+      <div class="hero-eyebrow">UX Exploration</div>
+      <h1>Three ways to add an item to a section</h1>
+      <p>Pick a direction to explore. Each prototype is interactive — click through the flow to feel the difference.</p>
+    </div>
+
+    <div class="context-hint" style="margin-bottom: var(--spacing-page-lg);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span class="context-hint-text">
+        <strong>The problem:</strong> "+ Add Item" always drops new items at the bottom. Getting them into a specific section requires drag-and-drop across many rows.
+      </span>
+    </div>
+
+    <div class="cards-grid">
+
+      <!-- Option A -->
+      <a href="option-a.html" class="option-card">
+        <div class="card-illustration option-a">
+          <div class="mini-table">
+            <div class="mini-section-header">
+              <div class="mini-section-name">
+                <div class="mini-dot" style="background: #1373E3;"></div>
+                IKO Products
+              </div>
+              <div class="mini-add-btn">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Item
+              </div>
+            </div>
+            <div class="mini-row">
+              <span class="mini-row-name">IKO StormShield</span>
+              <span class="mini-row-sub">$596.64</span>
+            </div>
+            <div class="mini-row">
+              <span class="mini-row-name">IKO Cambridge</span>
+              <span class="mini-row-sub">$38.36</span>
+            </div>
+            <div class="mini-row new">
+              <span class="mini-row-name" style="color: var(--text-link);">New item</span>
+              <span class="mini-row-sub" style="color: var(--text-link);">Just added ↑</span>
+            </div>
+            <div class="mini-section-header" style="margin-top: 0;">
+              <div class="mini-section-name">
+                <div class="mini-dot" style="background: #28A745;"></div>
+                Atlas
+              </div>
+              <div class="mini-add-btn">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Item
+              </div>
+            </div>
+            <div class="mini-row" style="border-bottom: none;">
+              <span class="mini-row-name">Atlas Pinnacle Pro</span>
+              <span class="mini-row-sub">$3,375.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <span class="option-tag">Option A</span>
+          <div class="card-title">Per-section add</div>
+          <div class="card-desc">Each section header has its own add button. One click, item lands directly inside that section.</div>
+
+          <ul class="card-benefits">
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Zero clicks to destination
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Each section is self-contained
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Global add still works for unsectioned items
+            </li>
+          </ul>
+
+          <div class="card-divider" style="margin: 0 0 var(--spacing-page-md);"></div>
+          <div class="card-cta">
+            Try Option A
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Option B -->
+      <a href="option-b.html" class="option-card">
+        <div class="card-illustration option-b">
+          <div class="mini-dropdown">
+            <div class="mini-dropdown-item" style="background: var(--background-secondary); font-size: 9px; color: var(--text-muted); font-weight: 500;">Add to which section?</div>
+            <div class="mini-dropdown-item active">
+              <div class="mini-dot" style="background: #1373E3;"></div>
+              IKO Products
+            </div>
+            <div class="mini-dropdown-item">
+              <div class="mini-dot" style="background: #28A745;"></div>
+              Atlas
+            </div>
+            <div class="mini-dropdown-item">
+              <div class="mini-dot" style="background: #F2882A;"></div>
+              Labour
+            </div>
+            <div class="mini-dropdown-item" style="color: var(--text-muted);">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              No section (end of list)
+            </div>
+          </div>
+          <div class="mini-trigger-btn">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add Item
+          </div>
+        </div>
+
+        <div class="card-body">
+          <span class="option-tag">Option B</span>
+          <div class="card-title">Section picker</div>
+          <div class="card-desc">The existing add button prompts you to pick a section before the row is inserted.</div>
+
+          <ul class="card-benefits">
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Familiar button location
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Destination confirmed before the item appears
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Minimal layout change
+            </li>
+          </ul>
+
+          <div class="card-divider" style="margin: 0 0 var(--spacing-page-md);"></div>
+          <div class="card-cta">
+            Try Option B
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Option C -->
+      <a href="option-c.html" class="option-card">
+        <div class="card-illustration option-c">
+          <!-- Mini table with dark section headers + add pills -->
+          <div class="mini-table-c">
+            <div class="mini-section-header-dark">
+              <div class="mini-section-name-light">
+                <div class="mini-dot" style="background: #1373E3;"></div>
+                IKO Products
+              </div>
+              <div class="mini-add-pill">
+                <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Add
+              </div>
+            </div>
+            <div class="mini-row">
+              <span class="mini-row-name">IKO StormShield</span>
+              <span class="mini-row-sub">$596.64</span>
+            </div>
+            <div class="mini-row">
+              <span class="mini-row-name">IKO Cambridge</span>
+              <span class="mini-row-sub">$38.36</span>
+            </div>
+            <div class="mini-section-header-dark">
+              <div class="mini-section-name-light">
+                <div class="mini-dot" style="background: #28A745;"></div>
+                Atlas
+              </div>
+              <div class="mini-add-pill">
+                <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Add
+              </div>
+            </div>
+            <div class="mini-row" style="border-bottom: none;">
+              <span class="mini-row-name">Atlas Pinnacle Pro</span>
+              <span class="mini-row-sub">$3,375.00</span>
+            </div>
+          </div>
+          <!-- Floating picker from the global button -->
+          <div class="mini-picker-c">
+            <div class="mini-dropdown-item" style="background: var(--background-secondary); font-size: 9px; color: var(--text-muted); font-weight: 500;">Add to which section?</div>
+            <div class="mini-dropdown-item active">
+              <div class="mini-dot" style="background: #1373E3;"></div>
+              IKO Products
+            </div>
+            <div class="mini-dropdown-item">
+              <div class="mini-dot" style="background: #28A745;"></div>
+              Atlas
+            </div>
+            <div class="mini-dropdown-item">
+              <div class="mini-dot" style="background: #F2882A;"></div>
+              Labour
+            </div>
+          </div>
+          <div class="mini-trigger-c">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add item to section
+          </div>
+        </div>
+
+        <div class="card-body">
+          <span class="option-tag">Option C</span>
+          <div class="card-title">Both, together</div>
+          <div class="card-desc">A [+] in each section's actions column for direct adds, plus a picker on the footer button for sections off-screen.</div>
+
+          <ul class="card-benefits">
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Zero-click when the section is visible
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Picker fallback for off-screen sections
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 11 4 16"></polyline></svg>
+              </div>
+              Works for any proposal size
+            </li>
+          </ul>
+
+          <div class="card-divider" style="margin: 0 0 var(--spacing-page-md);"></div>
+          <div class="card-cta">
+            Try Option C
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="page-footer">
+      Proposal Estimates &mdash; UX exploration &bull; <a href="PRD.md">Read the PRD</a>
+    </div>
+  </main>
+
+</body>
+</html>

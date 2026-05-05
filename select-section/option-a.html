@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option A — Inline Section Add</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      font-size: var(--Sizes-Body);
+      color: var(--text-default);
+      background: var(--background-secondary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Prototype navigation */
+    .proto-nav {
+      background: #fafafa;
+      border-bottom: 1px solid #e8e8e8;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      flex-shrink: 0;
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .proto-nav-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+    .proto-nav-links { margin-left: auto; display: flex; gap: 2px; }
+    .proto-nav-link {
+      font-size: 13px;
+      font-weight: 400;
+      color: #555;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: background 120ms, color 120ms;
+    }
+    .proto-nav-link:hover { background: rgba(0,0,0,0.05); color: #111; }
+    .proto-nav-link.active { font-weight: 600; color: #111; }
+    .proto-nav-link.not-chosen { text-decoration: line-through; color: #bbb; }
+    .proto-nav-link.not-chosen:hover { color: #888; }
+    .proto-nav-link.not-chosen.active { text-decoration: none; font-weight: 600; color: #777; }
+    .proto-nav-link.chosen::after { content: ' ✓'; font-size: 11px; opacity: 0.7; }
+
+    /* Modal shell */
+    .modal-shell {
+      background: var(--background-default);
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top bar */
+    .modal-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 52px;
+      border-bottom: 1px solid var(--border-default);
+      flex-shrink: 0;
+    }
+    .modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modal-title {
+      font-size: var(--Sizes-Body);
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+    .modal-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+    }
+    .distributor-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--Sizes-Smaller);
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      transition: background 150ms, color 150ms;
+    }
+    .icon-btn:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      transition: background 150ms, color 150ms;
+    }
+    .modal-close:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+
+    /* Tabs */
+    .tabs-bar {
+      display: flex;
+      align-items: flex-end;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border-default);
+      flex-shrink: 0;
+    }
+    .tab {
+      padding: 0 14px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      font-size: var(--Sizes-Small);
+      font-weight: 400;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: color 150ms;
+      white-space: nowrap;
+      margin-bottom: -1px;
+      user-select: none;
+    }
+    .tab:hover { color: var(--text-default); }
+    .tab.active { color: var(--text-link); font-weight: 500; border-bottom-color: var(--border-primary); }
+
+    /* Option badge — scrolls with content */
+    .tab-subbar {
+      padding: 6px 0 12px;
+    }
+    .option-badge {
+      display: inline-flex;
+      align-items: center;
+      background: var(--background-accent-primary);
+      border: 1px solid var(--border-primary-subtle);
+      color: var(--text-link);
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      padding: 2px 10px;
+      border-radius: var(--radius-circle);
+    }
+
+    /* Scrollable content */
+    .modal-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px 24px 0;
+    }
+
+    /* Table wrapper */
+    .table-wrap {
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    /* Table */
+    .proposal-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 960px;
+    }
+
+    /* Column widths */
+    .proposal-table col.c-drag  { width: 20px; }
+    .proposal-table col.c-check { width: 34px; }
+    .proposal-table col.c-name  { min-width: 130px; }
+    .proposal-table col.c-desc  { min-width: 100px; }
+    .proposal-table col.c-mappi { width: 80px; }
+    .proposal-table col.c-cov   { width: 90px; }
+    .proposal-table col.c-unit  { width: 110px; }
+    .proposal-table col.c-qty   { width: 52px; }
+    .proposal-table col.c-waste { width: 72px; }
+    .proposal-table col.c-adj   { width: 52px; }
+    .proposal-table col.c-cogs  { width: 68px; }
+    .proposal-table col.c-mkp   { width: 68px; }
+    .proposal-table col.c-sub   { width: 72px; }
+    .proposal-table col.c-act   { width: 75px; }
+
+    /* Header row */
+    .proposal-table thead th {
+      background: var(--background-tertiary);
+      border-bottom: 1px solid var(--border-default);
+      padding: 0 8px;
+      height: 40px;
+      text-align: left;
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .proposal-table thead th.th-drag { padding: 0 6px; }
+    .proposal-table thead th.th-check { padding: 0 8px; }
+    .proposal-table thead th.th-r { text-align: right; }
+
+    .th-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* Checkbox */
+    .checkbox {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .checkbox.light {
+      border: 1.5px solid var(--roofr-mist-5B);
+      background: #fff;
+    }
+    .checkbox.dark {
+      border: 1.5px solid rgba(255,255,255,0.45);
+      background: transparent;
+    }
+
+    /* Drag dots */
+    .drag-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      opacity: 0.3;
+      transition: opacity 150ms;
+    }
+    tr:hover .drag-dots { opacity: 0.7; }
+
+    /* ── SECTION HEADER ROWS ── */
+    .section-row td {
+      background: #28373E;
+      border-bottom: 1px solid rgba(0,0,0,0.18);
+      padding: 0;
+    }
+    .section-inner {
+      display: flex;
+      align-items: center;
+      height: 42px;
+      padding: 0 10px 0 0;
+      gap: 8px;
+    }
+    .section-inner > .drag-dots { width: 20px; flex-shrink: 0; }
+    .section-name-text {
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: #fff;
+      flex: 1;
+    }
+
+    /* Option A: add-item button inside section header */
+    .section-add-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      height: 26px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: var(--radius-circle);
+      cursor: pointer;
+      font-size: var(--Sizes-Smaller);
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+      transition: background 150ms, border-color 150ms;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .section-add-btn:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* ── ITEM ROWS ── */
+    .item-row td {
+      border-bottom: 1px solid var(--border-default);
+      padding: 0 8px;
+      height: 44px;
+      vertical-align: middle;
+      font-size: var(--Sizes-Small);
+      color: var(--text-default);
+    }
+    .item-row td.td-drag { padding: 0 6px; }
+    .item-row td.td-check { padding: 0 8px; }
+    .item-row td.td-r { text-align: right; }
+    .item-row td.td-name { font-weight: 500; color: var(--text-highlight); }
+    .item-row td.td-muted { color: var(--text-muted); font-size: var(--Sizes-Smaller); }
+    .item-row td.td-num { text-align: right; font-size: var(--Sizes-Smaller); color: var(--text-default); }
+
+    .item-row:hover td { background: var(--components-table-background-hover); }
+
+    /* Sticky actions column */
+    .proposal-table thead th:last-child {
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: var(--background-tertiary);
+      border-left: 1px solid var(--border-default);
+      box-shadow: -6px 0 14px rgba(0,0,0,0.08);
+    }
+    .item-row td:last-child {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: var(--background-default);
+      border-left: 1px solid var(--border-default);
+      box-shadow: -6px 0 14px rgba(0,0,0,0.08);
+    }
+    .item-row:hover td:last-child { background: var(--components-table-background-hover); }
+
+    /* Section row actions cell */
+    .td-actions-section {
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: #28373E;
+      border-left: 1px solid rgba(255,255,255,0.1);
+      padding: 0 8px;
+      vertical-align: middle;
+      white-space: nowrap;
+      box-shadow: -6px 0 14px rgba(0,0,0,0.15);
+    }
+    .section-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    .act-btn-sec {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255,255,255,0.4);
+      border-radius: var(--radius-sm);
+      transition: background 150ms, color 150ms;
+    }
+    .act-btn-sec:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
+    .act-btn-sec.eye { color: var(--icon-primary); }
+    .act-btn-sec.eye:hover { background: rgba(19,115,227,0.2); }
+    .act-btn-sec.add { color: rgba(255,255,255,0.65); position: relative; }
+    .act-btn-sec.add:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95); }
+    .act-btn-sec.add::after { content: 'Add item to this section'; position: absolute; bottom: calc(100% + 10px); right: -2px; background: var(--roofr-graphite); color: var(--roofr-mist); font-size: var(--Sizes-Smaller); font-family: inherit; font-weight: 400; line-height: 1.2; white-space: nowrap; padding: 6px 10px; border-radius: var(--radius-md); pointer-events: none; opacity: 0; transition: opacity 150ms ease-out; z-index: 200; }
+    .act-btn-sec.add::before { content: ''; position: absolute; bottom: calc(100% + 2px); right: 6px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid var(--roofr-graphite); pointer-events: none; opacity: 0; transition: opacity 150ms ease-out; z-index: 200; }
+    .act-btn-sec.add:hover::after, .act-btn-sec.add:hover::before { opacity: 1; }
+
+    /* Actions cell */
+    .item-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .act-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      border-radius: var(--radius-sm);
+      transition: background 150ms, color 150ms;
+    }
+    .act-btn:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+    .act-btn.danger:hover { background: var(--roofr-red-10); color: var(--icon-error); }
+    .act-btn.eye { color: var(--icon-primary); }
+    .act-btn.eye:hover { background: var(--background-accent-primary); }
+
+    /* New item animation */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes highlightFade {
+      0%   { background: #D0E3F9; }
+      30%  { background: var(--background-accent-primary); }
+      100% { background: transparent; }
+    }
+    .item-row.new-item td {
+      animation: highlightFade 2200ms ease forwards;
+    }
+    .item-row.entering { animation: slideIn 220ms ease forwards; }
+
+    .new-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-link);
+      font-weight: 500;
+      margin-left: 8px;
+      transition: opacity 500ms;
+    }
+
+    /* Unit-cost cell: shows value + unit */
+    .unit-val { font-size: var(--Sizes-Smaller); }
+    .unit-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
+
+    /* Dropdown indicator */
+    .dd-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      color: var(--text-default);
+      font-size: var(--Sizes-Smaller);
+    }
+
+    /* ── FOOTER (add buttons) ── */
+    .table-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+    }
+    .btn-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-link);
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      padding: 5px 6px;
+      border-radius: var(--radius-md);
+      transition: background 150ms;
+      font-family: inherit;
+    }
+    .btn-add:hover { background: var(--background-accent-primary); }
+    .btn-add-section {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-link);
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      padding: 5px 6px;
+      border-radius: var(--radius-md);
+      transition: background 150ms;
+      font-family: inherit;
+    }
+    .btn-add-section:hover { background: var(--background-accent-primary); }
+
+    /* Upgrades + Skylight area */
+    .below-table {
+      padding: 8px 0 16px;
+    }
+    .skylight-section {
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .skylight-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      gap: 4px;
+      background: var(--background-tertiary);
+      border-bottom: 1px solid var(--border-default);
+    }
+    .skylight-title {
+      font-size: var(--Sizes-Body);
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+    .skylight-spacer { flex: 1; }
+    /* Skylight table */
+    .sky-footer-row td { padding: 2px 2px; }
+    .btn-add-section:disabled { color: var(--text-inactive); cursor: default; pointer-events: none; }
+    .btn-add.active { background: var(--background-accent-primary); }
+    /* skylight title editable state */
+    .skylight-title[contenteditable="true"] { outline: none; border-bottom: 1px solid var(--border-primary); padding-bottom: 1px; }
+    /* Sky picker */
+    .sky-table-footer-wrap { position: relative; }
+    .sky-picker {
+      position: absolute; bottom: calc(100% + 6px); left: 6px; width: 230px;
+      background: var(--components-Menu_Dropdown-Default-fill);
+      border: 1px solid var(--components-Menu_Dropdown-Border-fill);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden; z-index: 100;
+      opacity: 0; transform: translateY(6px) scale(0.97); transform-origin: bottom left;
+      pointer-events: none; transition: opacity 160ms ease, transform 160ms ease;
+    }
+    .sky-picker.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+    .picker-header { padding: 7px 12px 6px; font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-muted); background: var(--background-secondary); border-bottom: 1px solid var(--border-default); }
+    .picker-option { display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; transition: background 120ms; border-bottom: 1px solid var(--border-default); font-size: var(--Sizes-Small); color: var(--components-Menu_Dropdown-Text_title-default); }
+    .picker-option:last-child { border-bottom: none; }
+    .picker-option:hover { background: var(--components-Menu_Dropdown-Default-hover); }
+    .picker-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .picker-option-name { flex: 1; font-weight: 500; }
+    /* Profitability */
+    .profitability-section { border: 1px solid var(--border-default); border-radius: var(--radius-lg); overflow: hidden; margin-top: 8px; }
+    .profitability-header { display: flex; align-items: center; padding: 10px 16px; background: var(--background-tertiary); border-bottom: 1px solid var(--border-default); }
+    .profitability-title { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-default); }
+    .profitability-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 16px; border-bottom: 1px solid var(--border-default); font-size: var(--Sizes-Small); }
+    .profitability-row:last-child { border-bottom: none; }
+    .profitability-label { color: var(--text-muted); }
+    .profitability-value { font-weight: 500; color: var(--text-default); }
+    .profitability-value.positive { color: var(--text-success); }
+
+    /* Sticky footer */
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 24px;
+      border-top: 1px solid var(--border-default);
+      background: var(--background-default);
+      flex-shrink: 0;
+    }
+    .btn-cancel {
+      height: 36px;
+      padding: 0 20px;
+      background: none;
+      border: none;
+      border-radius: var(--radius-circle);
+      cursor: pointer;
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-default);
+      font-family: inherit;
+      transition: background 150ms;
+    }
+    .btn-cancel:hover { background: var(--background-secondary); }
+    .btn-save {
+      height: 36px;
+      padding: 0 24px;
+      background: var(--background-contrast);
+      border: none;
+      border-radius: var(--radius-circle);
+      cursor: pointer;
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: #fff;
+      font-family: inherit;
+      transition: background 150ms;
+    }
+    .btn-save:hover { background: var(--background-gradients-alternative-start); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--background-inverted);
+      color: var(--text-inverted);
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      padding: 9px 18px;
+      border-radius: var(--radius-circle);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 200;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Collapsed */
+    .section-items.collapsed { display: none; }
+
+    /* ── INLINE ITEM CREATION ── */
+    .item-row.editing td { background: var(--background-default) !important; }
+    .td-name-edit { overflow: visible !important; }
+    .name-input {
+      width: 100%;
+      min-width: 120px;
+      border: 1.5px solid var(--components-input-border-active);
+      border-radius: var(--components-input-radius);
+      padding: 5px 8px;
+      font-family: inherit;
+      font-size: var(--Sizes-Small);
+      color: var(--text-highlight);
+      outline: none;
+      background: var(--components-input-background-default);
+      box-shadow: 0 0 0 3px rgba(19,115,227,0.12);
+    }
+    .name-dropdown {
+      position: fixed;
+      background: var(--components-Menu_Dropdown-Default-fill);
+      border: 1px solid var(--components-Menu_Dropdown-Border-fill);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .name-dropdown-item {
+      padding: 9px 14px;
+      font-size: var(--Sizes-Small);
+      color: var(--components-Menu_Dropdown-Text_title-default);
+      cursor: pointer;
+      transition: background 100ms;
+    }
+    .name-dropdown-item:hover { background: var(--components-Menu_Dropdown-Default-hover); }
+    .name-dropdown-item.empty { color: var(--text-muted); cursor: default; font-style: italic; }
+    .name-dropdown-item.empty:hover { background: transparent; }
+    .name-dropdown-item.create-new { border-top: 1px solid var(--border-default); }
+  </style>
+</head>
+<body>
+
+  <nav class="proto-nav">
+    <span class="proto-nav-title">Add Item to Section</span>
+    <div class="proto-nav-links">
+      <a href="cover.html" class="proto-nav-link">Cover</a>
+      <a href="option-a.html" class="proto-nav-link not-chosen active">Option A</a>
+      <a href="option-b.html" class="proto-nav-link not-chosen">Option B</a>
+      <a href="option-c.html" class="proto-nav-link chosen">Option C</a>
+    </div>
+  </nav>
+
+  <div class="modal-shell">
+
+    <!-- Top bar -->
+    <div class="modal-topbar">
+      <div class="modal-title-group">
+        <span class="modal-title">Option 1</span>
+        <button class="icon-btn" title="Rename">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+        </button>
+      </div>
+      <div class="modal-meta">
+        <div class="distributor-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          SRS Distribution
+        </div>
+        <span style="font-size:11px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" style="vertical-align:-2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          SRS BUILDING PRODUCTS · KNOXVILLE
+        </span>
+        <button class="modal-close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-bar">
+      <div class="tab active">Estimate option</div>
+      <div class="tab">Skylight</div>
+      <div class="tab">Profitability</div>
+      <div class="tab">Estimate totals</div>
+    </div>
+    <!-- Content -->
+    <div class="modal-content">
+      <div class="tab-subbar">
+        <span class="option-badge">Estimate option</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="proposal-table">
+          <colgroup>
+            <col class="c-drag">
+            <col class="c-check">
+            <col class="c-name">
+            <col class="c-desc">
+            <col class="c-mappi">
+            <col class="c-cov">
+            <col class="c-unit">
+            <col class="c-qty">
+            <col class="c-waste">
+            <col class="c-adj">
+            <col class="c-cogs">
+            <col class="c-mkp">
+            <col class="c-sub">
+            <col class="c-act">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="th-drag"></th>
+              <th class="th-check"><div class="checkbox light"></div></th>
+              <th>Name</th>
+              <th>Description</th>
+              <th><div class="th-inner">Mappi...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th><div class="th-inner">Cov.<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th><div class="th-inner">Unit c...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th><div class="th-inner">Qty<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th><div class="th-inner">Waste (%)<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th><div class="th-inner">Adj...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th>COGS</th>
+              <th><div class="th-inner">Markup...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+              <th>Subt...</th>
+              <th><div class="th-inner">Actions<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+
+            <!-- IKO Products -->
+            <tr class="section-row" id="section-row-iko">
+              <td colspan="13" style="padding:0;">
+                <div class="section-inner">
+                  <div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="#fff" opacity=".4"><circle cx="5" cy="4" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="5" cy="12" r="1.3"/><circle cx="11" cy="4" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="11" cy="12" r="1.3"/></svg></div>
+                  <div class="checkbox dark"></div>
+                  <span class="section-name-text">IKO Products</span>
+                  <button class="section-add-btn" onclick="addItemToSection('iko','IKO Products')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Add Item
+                  </button>
+                </div>
+              </td>
+              <td class="td-actions-section">
+                <div class="section-actions">
+                  <button class="act-btn-sec" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                  <button class="act-btn-sec eye" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tbody id="iko-items">
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">IKO StormShield</td><td class="td-muted">2 It...</td><td class="td-num">65 ft</td><td class="td-num"><span class="unit-val">105.55</span><span class="unit-label">Roll</span></td><td class="td-num">2.57</td><td class="td-num">3.46</td><td class="td-num">3</td><td class="td-num">316.65</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">IKO Stormrite</td><td class="td-muted">1 Item</td><td class="td-num">0 sq</td><td class="td-num"><span class="unit-val">132.10</span><span class="unit-label">Roll</span></td><td class="td-num">500.00</td><td class="td-num">3.46</td><td class="td-num">518</td><td class="td-num">68.42</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">IKO Cambridge</td><td class="td-muted"><span class="dd-indicator">None <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span></td><td class="td-num"></td><td class="td-num"><span class="unit-val">44.35</span><span class="unit-label">Default</span></td><td class="td-num">400.00</td><td class="td-num">3.46</td><td class="td-num">414</td><td class="td-num">18.36</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">IKO Dynasty</td><td class="td-muted"><span class="dd-indicator">1 Item <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span></td><td class="td-num">33.3 sqft</td><td class="td-num">0.000</td><td class="td-num">0.00</td><td class="td-num">3.46</td><td class="td-num">0</td><td class="td-num">0.00</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+            </tbody>
+
+            <!-- Atlas -->
+            <tr class="section-row" id="section-row-atlas">
+              <td colspan="13" style="padding:0;">
+                <div class="section-inner">
+                  <div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="#fff" opacity=".4"><circle cx="5" cy="4" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="5" cy="12" r="1.3"/><circle cx="11" cy="4" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="11" cy="12" r="1.3"/></svg></div>
+                  <div class="checkbox dark"></div>
+                  <span class="section-name-text">Atlas</span>
+                  <button class="section-add-btn" onclick="addItemToSection('atlas','Atlas')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Add Item
+                  </button>
+                </div>
+              </td>
+              <td class="td-actions-section">
+                <div class="section-actions">
+                  <button class="act-btn-sec" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                  <button class="act-btn-sec eye" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tbody id="atlas-items">
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">Atlas Pinnacle Pri...</td><td class="td-muted">1 Item</td><td class="td-num">0 sqft</td><td class="td-num"><span class="unit-val">48.57</span><span class="unit-label">Bundle</span></td><td class="td-num">48.00</td><td class="td-num">10.00</td><td class="td-num">53</td><td class="td-num">2,576</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">Atlas Pro-Cut Hip...</td><td class="td-muted">2 It...</td><td class="td-num">31 ft</td><td class="td-num">0.000</td><td class="td-num">1.79</td><td class="td-num">0.00</td><td class="td-num">2</td><td class="td-num">0.00</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">Atlas Summit 60...</td><td class="td-muted">1 Item</td><td class="td-num">10 sq</td><td class="td-num">0.000</td><td class="td-num">0.00</td><td class="td-num">0.00</td><td class="td-num">0</td><td class="td-num">0.00</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+            </tbody>
+
+            <!-- Labour -->
+            <tr class="section-row" id="section-row-labour">
+              <td colspan="13" style="padding:0;">
+                <div class="section-inner">
+                  <div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="#fff" opacity=".4"><circle cx="5" cy="4" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="5" cy="12" r="1.3"/><circle cx="11" cy="4" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="11" cy="12" r="1.3"/></svg></div>
+                  <div class="checkbox dark"></div>
+                  <span class="section-name-text">Labour</span>
+                  <button class="section-add-btn" onclick="addItemToSection('labour','Labour')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Add Item
+                  </button>
+                </div>
+              </td>
+              <td class="td-actions-section">
+                <div class="section-actions">
+                  <button class="act-btn-sec" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                  <button class="act-btn-sec eye" title="View"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tbody id="labour-items">
+              <tr class="item-row"><td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td><td class="td-check"><div class="checkbox light"></div></td><td class="td-name">Steep roof labour</td><td class="td-muted"><span class="dd-indicator">None <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span></td><td class="td-num"></td><td class="td-num">500.00</td><td class="td-num">5.00</td><td class="td-num">0.00</td><td class="td-num">5</td><td class="td-num">2,500</td><td class="td-num">0</td><td class="td-num"></td><td class="td-num"></td><td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td></tr>
+            </tbody>
+
+            <!-- Footer row -->
+            <tr id="footer-row"><td colspan="14" style="padding:0; border-bottom:none;">
+              <div class="table-footer">
+                <button class="btn-add" onclick="addItemNoSection()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                  Add item
+                </button>
+                <button class="btn-add-section">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                  Add section heading
+                </button>
+              </div>
+            </td></tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Below table -->
+      <div class="below-table">
+        <div class="tab-subbar"><span class="option-badge">Upgrades</span></div>
+        <div class="skylight-section">
+          <div class="skylight-header">
+            <span class="skylight-title" id="sky-title">Skylight</span>
+            <button class="icon-btn" id="sky-edit-btn" title="Rename" onclick="skyEditTitle()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></button>
+            <div class="skylight-spacer"></div>
+            <button class="icon-btn" style="color: var(--icon-error);" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></button>
+          </div>
+          <div class="sky-table-wrap">
+            <table class="proposal-table sky-table">
+              <colgroup>
+                <col class="c-drag"><col class="c-check"><col class="c-name"><col class="c-desc">
+                <col class="c-mappi"><col class="c-cov"><col class="c-unit"><col class="c-qty">
+                <col class="c-waste"><col class="c-adj"><col class="c-cogs"><col class="c-mkp">
+                <col class="c-sub"><col class="c-act">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="th-drag"></th>
+                  <th class="th-check"><div class="checkbox light"></div></th>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th><div class="th-inner">Mappi...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th><div class="th-inner">Cov.<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th><div class="th-inner">Unit c...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th><div class="th-inner">Qty<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th><div class="th-inner">Waste (%)<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th><div class="th-inner">Adj...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th>COGS</th>
+                  <th><div class="th-inner">Markup...<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                  <th>Subt...</th>
+                  <th><div class="th-inner">Actions<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div></th>
+                </tr>
+              </thead>
+              <tbody id="sky-items">
+                <tr class="item-row">
+                  <td class="td-drag"><div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg></div></td>
+                  <td class="td-check"><div class="checkbox light"></div></td>
+                  <td class="td-name"><span style="font-weight:500;color:var(--text-highlight);">Velux skylight (14×14)</span></td>
+                  <td class="td-muted">Premium curb-mount</td>
+                  <td class="td-num">—</td>
+                  <td class="td-num">—</td>
+                  <td class="td-num"><span class="unit-val">485.00</span><span class="unit-label">ea</span></td>
+                  <td class="td-num">2</td>
+                  <td class="td-num">0%</td>
+                  <td class="td-num">0%</td>
+                  <td class="td-num">970.00</td>
+                  <td class="td-num">35%</td>
+                  <td class="td-num">1,309.50</td>
+                  <td><div class="item-actions"><button class="act-btn danger" title="Delete"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button><button class="act-btn eye" title="View"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></td>
+                </tr>
+              </tbody>
+              <tbody>
+                <tr class="sky-footer-row">
+                  <td colspan="14" style="padding:0; border-bottom:none;">
+                    <div class="table-footer">
+                      <button class="btn-add" onclick="skyAddItem()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        Add item
+                      </button>
+                      <button class="btn-add-section" id="sky-add-section-btn" onclick="skyAddSection()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        Add section heading
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- end modal-content -->
+
+    <!-- Sticky footer -->
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="window.location.href='index.html'">Cancel</button>
+      <button class="btn-save">Save</button>
+    </div>
+
+  </div><!-- end modal-shell -->
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let itemCounter = 100;
+
+    const CATALOG = [
+      'IKO StormShield', 'IKO Stormrite', 'IKO Cambridge', 'IKO Dynasty',
+      'Atlas Pinnacle Premium', 'Atlas Pro-Cut Hip & Ridge', 'Atlas Summit 60',
+      'Steep roof labour', 'Flat roof labour', 'Ridge cap shingles',
+      'Drip edge — aluminum', 'Ice & water shield', 'Roofing nails (coil)',
+      'Pipe collar flashing', 'Plywood sheathing', 'Synthetic underlayment',
+      'Peel & stick membrane', 'Fascia board replacement', 'Roof deck inspection',
+    ];
+
+    const DOTS = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="5" r="1.3"/><circle cx="5" cy="9" r="1.3"/><circle cx="5" cy="13" r="1.3"/><circle cx="11" cy="5" r="1.3"/><circle cx="11" cy="9" r="1.3"/><circle cx="11" cy="13" r="1.3"/></svg>`;
+    const LINK_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
+    const X_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+    const EYE_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function makeRow() {
+      const tr = document.createElement('tr');
+      tr.className = 'item-row editing entering';
+      tr.id = 'item-' + (++itemCounter);
+      tr.innerHTML = `
+        <td class="td-drag"><div class="drag-dots">${DOTS}</div></td>
+        <td class="td-check"><div class="checkbox light"></div></td>
+        <td class="td-name td-name-edit">
+          <input class="name-input" type="text" placeholder="Search catalog…" autocomplete="off" spellcheck="false" />
+        </td>
+        <td class="td-muted"></td><td class="td-num"></td><td class="td-num"></td>
+        <td class="td-num">0</td><td class="td-num">1.00</td><td class="td-num">0</td>
+        <td class="td-num">0</td><td class="td-num">0</td><td class="td-num">0</td><td class="td-num">0</td>
+        <td><div class="item-actions" style="opacity:1;">
+          <button class="act-btn danger" title="Remove">${X_ICON}</button>
+        </div></td>
+      `;
+
+      const input = tr.querySelector('.name-input');
+      const dd = document.createElement('div');
+      dd.className = 'name-dropdown';
+      dd.style.display = 'none';
+      document.body.appendChild(dd);
+
+      tr.querySelector('.act-btn.danger').addEventListener('click', () => { tr.remove(); dd.remove(); });
+
+      function pos() {
+        const r = input.getBoundingClientRect();
+        dd.style.top = (r.bottom + 4) + 'px';
+        dd.style.left = r.left + 'px';
+        dd.style.width = Math.max(r.width, 260) + 'px';
+      }
+
+      function render(val) {
+        dd.innerHTML = '';
+        if (!val) {
+          const e = document.createElement('div');
+          e.className = 'name-dropdown-item empty';
+          e.textContent = 'No matching items found in your catalog.';
+          dd.appendChild(e);
+          return;
+        }
+        const v = val.toLowerCase();
+        const hits = CATALOG.filter(c => c.toLowerCase().includes(v));
+        hits.slice(0, 7).forEach(name => {
+          const i = name.toLowerCase().indexOf(v);
+          const el = document.createElement('div');
+          el.className = 'name-dropdown-item';
+          el.innerHTML = esc(name.slice(0, i)) + '<strong>' + esc(name.slice(i, i + val.length)) + '</strong>' + esc(name.slice(i + val.length));
+          el.addEventListener('mousedown', e => { e.preventDefault(); commit(name); });
+          dd.appendChild(el);
+        });
+        if (!CATALOG.some(c => c.toLowerCase() === v)) {
+          const el = document.createElement('div');
+          el.className = 'name-dropdown-item create-new';
+          el.innerHTML = `Add new item: <strong>${esc(val)}</strong>`;
+          el.addEventListener('mousedown', e => { e.preventDefault(); commit(val); });
+          dd.appendChild(el);
+        }
+      }
+
+      function commit(name) {
+        dd.remove();
+        tr.classList.remove('editing');
+        const cell = tr.querySelector('.td-name');
+        cell.className = 'td-name';
+        cell.innerHTML = `<span style="font-weight:500;color:var(--text-highlight);">${esc(name)}</span>`;
+        tr.querySelector('.item-actions').innerHTML = `
+          <button class="act-btn danger" title="Delete">${X_ICON}</button>
+          <button class="act-btn eye" title="View">${EYE_ICON}</button>
+        `;
+        tr.querySelector('.item-actions').style.opacity = '';
+        tr.classList.add('new-item');
+        setTimeout(() => tr.classList.remove('new-item'), 2200);
+      }
+
+      const scroller = document.querySelector('.modal-content');
+      const onScroll = () => { if (dd.style.display !== 'none') pos(); };
+      scroller.addEventListener('scroll', onScroll, { passive: true });
+
+      input.addEventListener('focus', () => { pos(); render(input.value.trim()); dd.style.display = 'block'; });
+      input.addEventListener('input', () => { pos(); render(input.value.trim()); });
+      input.addEventListener('blur', () => { setTimeout(() => { dd.style.display = 'none'; }, 180); });
+      input.addEventListener('keydown', e => { if (e.key === 'Escape') { tr.remove(); dd.remove(); } });
+
+      return tr;
+    }
+
+    function addItemToSection(id, name) {
+      const tbody = document.getElementById(id + '-items');
+      const row = makeRow();
+      tbody.appendChild(row);
+      setTimeout(() => {
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        row.querySelector('.name-input').focus();
+      }, 60);
+    }
+
+    function addItemNoSection() {
+      const tbody = document.querySelector('#table-body');
+      const footer = document.getElementById('footer-row');
+      const row = makeRow();
+      tbody.insertBefore(row, footer);
+      setTimeout(() => {
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        row.querySelector('.name-input').focus();
+      }, 60);
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    // Skylight upgrade section
+    function skyEditTitle() {
+      const title = document.getElementById('sky-title');
+      title.contentEditable = 'true';
+      title.focus();
+      const range = document.createRange();
+      range.selectNodeContents(title);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      title.addEventListener('blur', function commit() {
+        title.contentEditable = 'false';
+        title.removeEventListener('blur', commit);
+      }, { once: true });
+      title.addEventListener('keydown', function onKey(e) {
+        if (e.key === 'Enter') { e.preventDefault(); title.blur(); }
+        if (e.key === 'Escape') { title.blur(); }
+      }, { once: true });
+    }
+
+    function skyAddItem() {
+      const tbody = document.getElementById('sky-items');
+      const row = makeRow();
+      tbody.appendChild(row);
+      setTimeout(() => {
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        row.querySelector('.name-input').focus();
+      }, 60);
+    }
+
+    function skyAddItemToSection(sectionRow) {
+      const tbody = document.getElementById('sky-items');
+      const rows = Array.from(tbody.rows);
+      const idx = rows.indexOf(sectionRow);
+      let insertBefore = null;
+      for (let i = idx + 1; i < rows.length; i++) {
+        if (rows[i].classList.contains('section-row')) { insertBefore = rows[i]; break; }
+      }
+      const newRow = makeRow();
+      insertBefore ? tbody.insertBefore(newRow, insertBefore) : tbody.appendChild(newRow);
+      setTimeout(() => {
+        newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        newRow.querySelector('.name-input').focus();
+      }, 60);
+    }
+
+    const SKY_ADD_BTN = `<button class="act-btn-sec add" onclick="skyAddItemToSection(this.closest('tr'))"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></button>`;
+
+    let skySectionCount = 0;
+    function skyAddSection() {
+      skySectionCount++;
+
+      const tbody = document.getElementById('sky-items');
+      const tr = document.createElement('tr');
+      tr.className = 'section-row';
+      tr.style.opacity = '0';
+
+      const addBtnHTML = skySectionCount >= 2 ? SKY_ADD_BTN : '';
+
+      tr.innerHTML = `
+        <td colspan="13" style="padding:0;">
+          <div class="section-inner">
+            <div class="drag-dots"><svg width="12" height="12" viewBox="0 0 16 16" fill="#fff" opacity=".4"><circle cx="5" cy="4" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="5" cy="12" r="1.3"/><circle cx="11" cy="4" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="11" cy="12" r="1.3"/></svg></div>
+            <div class="checkbox dark"></div>
+            <span class="section-name-text" contenteditable="true" style="outline:none;min-width:60px;caret-color:#fff;">New section</span>
+          </div>
+        </td>
+        <td class="td-actions-section">
+          <div class="section-actions">
+            ${addBtnHTML}
+            <button class="act-btn-sec" title="Delete"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            <button class="act-btn-sec eye" title="Hide"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+          </div>
+        </td>
+      `;
+      skySectionCount === 1 ? tbody.insertBefore(tr, tbody.firstChild) : tbody.appendChild(tr);
+
+      // When 2nd section is added, prepend the add button to all existing section rows too
+      if (skySectionCount === 2) {
+        tbody.querySelectorAll('.section-row').forEach(row => {
+          const actions = row.querySelector('.section-actions');
+          if (actions && !actions.querySelector('.act-btn-sec.add')) {
+            actions.insertAdjacentHTML('afterbegin', SKY_ADD_BTN);
+            actions.querySelector('.act-btn-sec.add').onclick = () => skyAddItemToSection(row);
+          }
+        });
+        skyUpgradeFooter();
+      }
+
+      requestAnimationFrame(() => {
+        tr.style.transition = 'opacity 200ms ease';
+        tr.style.opacity = '1';
+      });
+
+      const nameSpan = tr.querySelector('.section-name-text');
+      setTimeout(() => {
+        nameSpan.focus();
+        const range = document.createRange();
+        range.selectNodeContents(nameSpan);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        tr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 60);
+    }
+
+    // Sky picker
+    const SKY_SECTION_COLORS = ['#1373E3', '#28A745', '#F2882A', '#7846CE', '#DC3545'];
+    const SKY_PLUS = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>`;
+
+    function skyUpgradeFooter() {
+      const td = document.querySelector('.sky-footer-row td');
+      td.innerHTML = `
+        <div class="sky-table-footer-wrap">
+          <div class="sky-picker" id="sky-picker"></div>
+          <div class="table-footer">
+            <button class="btn-add" id="sky-add-item-btn" onclick="skyTogglePicker()">
+              ${SKY_PLUS}Add item to section
+            </button>
+            <button class="btn-add-section" id="sky-add-section-btn" onclick="skyAddSection()">
+              ${SKY_PLUS}Add section heading
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    let skyPickerOpen = false;
+    function skyTogglePicker() {
+      skyPickerOpen = !skyPickerOpen;
+      if (skyPickerOpen) skyBuildPicker();
+      document.getElementById('sky-picker').classList.toggle('open', skyPickerOpen);
+      document.getElementById('sky-add-item-btn').classList.toggle('active', skyPickerOpen);
+    }
+
+    function skyClosePicker() {
+      skyPickerOpen = false;
+      const p = document.getElementById('sky-picker');
+      const b = document.getElementById('sky-add-item-btn');
+      if (p) p.classList.remove('open');
+      if (b) b.classList.remove('active');
+    }
+
+    function skyBuildPicker() {
+      const picker = document.getElementById('sky-picker');
+      picker.innerHTML = '<div class="picker-header">Add to which section?</div>';
+      document.getElementById('sky-items').querySelectorAll('.section-row').forEach((row, i) => {
+        const name = row.querySelector('.section-name-text')?.textContent.trim() || 'Section';
+        const color = SKY_SECTION_COLORS[i % SKY_SECTION_COLORS.length];
+        const opt = document.createElement('div');
+        opt.className = 'picker-option';
+        opt.innerHTML = `<div class="picker-dot" style="background:${color};"></div><span class="picker-option-name">${esc(name)}</span>`;
+        opt.onclick = () => { skyClosePicker(); skyAddItemToSection(row); };
+        picker.appendChild(opt);
+      });
+    }
+
+    document.addEventListener('click', e => {
+      if (!skyPickerOpen) return;
+      const picker = document.getElementById('sky-picker');
+      const btn = document.getElementById('sky-add-item-btn');
+      if (picker && btn && !picker.contains(e.target) && !btn.contains(e.target)) skyClosePicker();
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>
