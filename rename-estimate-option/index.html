@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rename Estimate Option — Roofr Prototype</title>
+  <link rel="stylesheet" href="tokens.css">
+  <style>
+    @font-face {
+      font-family: 'Circular Std';
+      src: url('CircularStd-Book.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Circular Std';
+      src: url('CircularStd-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: var(--Sizes-Small);
+      color: var(--text-default);
+      background: var(--background-default);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    svg { display: block; }
+
+    /* ─── Top bar ─── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      height: 52px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border-default);
+      gap: 12px;
+      flex-shrink: 0;
+      background: var(--background-default);
+    }
+
+    .topbar-back {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: var(--Sizes-Small);
+      color: var(--text-link);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 150ms ease;
+    }
+    .topbar-back:hover { color: var(--text-link-hover); }
+
+    .topbar-autosave {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .topbar-address {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+    .topbar-address button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      display: flex;
+      transition: color 150ms ease;
+    }
+    .topbar-address button:hover { color: var(--icon-icon-default); }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      height: 34px;
+      border-radius: var(--radius-md);
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 150ms ease, border-color 150ms ease;
+      white-space: nowrap;
+    }
+    .btn-draft {
+      background: var(--background-accent-upgrade);
+      border-color: #FFE195;
+      color: #5D4C1D;
+    }
+    .btn-draft:hover { background: #FFF0CA; }
+    .btn-ghost {
+      background: var(--background-default);
+      border-color: var(--border-default);
+      color: var(--text-default);
+    }
+    .btn-ghost:hover { background: var(--background-secondary); }
+    .btn-primary {
+      background: var(--background-contrast);
+      border-color: transparent;
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--roofr-blue-20B); }
+
+    /* ─── Main layout ─── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      width: 242px;
+      flex-shrink: 0;
+      background: var(--background-default);
+      border-right: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* Collapse toggle */
+    .sidebar-toggle {
+      position: fixed;
+      left: 230px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background: var(--background-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-circle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      z-index: 20;
+      transition: background 150ms ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .sidebar-toggle:hover { background: var(--background-secondary); }
+
+    /* Sidebar sections */
+    .sb-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-default);
+    }
+    .sb-section-label {
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* Customer card */
+    .customer-card {
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+    }
+    .customer-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-highlight);
+      margin-bottom: 3px;
+    }
+    .customer-name-row button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      padding: 0;
+      display: flex;
+    }
+    .customer-email {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-muted);
+    }
+    .cosigner-btn {
+      margin-top: 10px;
+      padding: 0 12px;
+      height: 28px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      background: var(--background-default);
+      font-size: var(--Sizes-Small);
+      font-family: inherit;
+      color: var(--text-default);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .cosigner-btn:hover { background: var(--background-secondary); }
+
+    /* Related links */
+    .related-links { display: flex; flex-direction: column; gap: 6px; }
+    .related-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--Sizes-Small);
+      color: var(--text-link);
+      cursor: pointer;
+      transition: color 150ms ease;
+    }
+    .related-link:hover { color: var(--text-link-hover); }
+
+    /* Proposal sections area */
+    .sb-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 12px;
+      background: var(--background-secondary);
+    }
+    .sb-nav-header {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 16px 6px;
+    }
+    .sb-nav-header span {
+      font-size: var(--Sizes-Smaller);
+      color: var(--text-muted);
+    }
+    .sb-nav-header svg { color: var(--icon-icon-muted); }
+
+    /* Cover block */
+    .sb-cover-block {
+      background: var(--background-quaternary);
+      border-left: 3px solid var(--roofr-mist-20B);
+      margin: 0 16px 6px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .sb-cover {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px 0 12px;
+      cursor: default;
+    }
+    .sb-cover-label {
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+    }
+
+    /* Estimate block */
+    .sb-estimate-block {
+      background: var(--background-default);
+      border-left: 3px solid var(--border-primary);
+      margin: 0 16px 6px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    /* Estimate section group */
+    .sb-estimate-group {
+      display: flex;
+      align-items: center;
+      height: 38px;
+      padding: 0 8px;
+      cursor: pointer;
+      transition: background 150ms ease;
+      position: relative;
+    }
+    .sb-estimate-group:hover { background: var(--background-tertiary); }
+
+    .drag-handle {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--icon-icon-inactive);
+      flex-shrink: 0;
+      cursor: grab;
+    }
+
+    .sb-estimate-label {
+      flex: 1;
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-default);
+      padding: 0 4px;
+    }
+
+    .sb-add-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      color: var(--icon-icon-muted);
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+      flex-shrink: 0;
+    }
+    .sb-add-btn:hover { background: var(--background-quaternary); color: var(--icon-icon-default); }
+
+    /* Option rows */
+    .sb-opt-row {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 8px 0 8px;
+      cursor: pointer;
+      position: relative;
+      transition: background 150ms ease;
+      user-select: none;
+    }
+    .sb-opt-row:hover { background: var(--background-secondary); }
+    .sb-opt-row.is-active { background: var(--background-accent-primary); }
+    .sb-opt-row.is-active .opt-label { font-weight: 500; }
+    .sb-opt-row.is-editing {
+      background: var(--background-default) !important;
+      cursor: default;
+    }
+    .sb-opt-row.is-editing:hover { background: var(--background-default) !important; }
+
+    .opt-label {
+      flex: 1;
+      font-size: var(--Sizes-Small);
+      color: var(--text-default);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 4px;
+      min-width: 0;
+    }
+
+    .opt-menu-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      color: var(--icon-icon-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .opt-menu-btn:hover { background: var(--background-quaternary); color: var(--icon-icon-default); }
+    .opt-menu-btn.is-open { background: var(--background-quaternary); color: var(--icon-icon-default); }
+
+    /* Inline edit state */
+    .opt-edit-input {
+      flex: 1;
+      height: 26px;
+      padding: 0 7px;
+      font-size: var(--Sizes-Small);
+      font-family: inherit;
+      color: var(--components-input-content-default);
+      background: var(--components-input-background-default);
+      border: 1.5px solid var(--components-input-border-active);
+      border-radius: var(--components-input-radius);
+      outline: none;
+      box-shadow: 0 0 0 2.5px var(--roofr-blue-50);
+      min-width: 0;
+      transition: box-shadow 150ms ease;
+    }
+
+    .opt-edit-actions {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      margin-left: 4px;
+    }
+
+    .opt-edit-btn {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+      font-family: inherit;
+    }
+    .opt-edit-btn.cancel-btn {
+      color: var(--icon-icon-muted);
+    }
+    .opt-edit-btn.cancel-btn:hover {
+      background: var(--background-secondary);
+      color: var(--icon-icon-default);
+    }
+    .opt-edit-btn.confirm-btn {
+      color: var(--roofr-green);
+    }
+    .opt-edit-btn.confirm-btn:hover {
+      background: var(--background-accent-success);
+      color: var(--roofr-green-5B);
+    }
+
+    /* Summary row */
+    .sb-summary-row {
+      display: flex;
+      align-items: center;
+      height: 34px;
+      padding: 0 8px 0 28px;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .sb-summary-row:hover { background: var(--background-secondary); }
+    .sb-summary-label {
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+    }
+
+    /* Add section button */
+    .sb-add-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 36px;
+      margin: 0 16px 6px;
+      border: 1.5px dashed var(--border-default);
+      border-radius: var(--radius-lg);
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+    }
+    .sb-add-section:hover {
+      border-color: var(--border-primary-subtle);
+      background: var(--background-accent-primary);
+      color: var(--text-link);
+    }
+
+    /* ─── Dropdown menu ─── */
+    .dropdown {
+      position: fixed;
+      background: var(--components-Menu_Dropdown-Default-fill);
+      border: 1px solid var(--components-Menu_Dropdown-Border-fill);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+      z-index: 500;
+      overflow: hidden;
+      padding: 6px 0;
+      min-width: 150px;
+      transform-origin: top right;
+      animation: ddIn 120ms ease-out forwards;
+    }
+    @keyframes ddIn {
+      from { opacity: 0; transform: scale(0.97) translateY(-4px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      height: 36px;
+      font-size: var(--Sizes-Small);
+      color: var(--components-Menu_Dropdown-Text_title-default);
+      cursor: pointer;
+      transition: background 150ms ease;
+      white-space: nowrap;
+    }
+    .dd-item:hover { background: var(--components-Menu_Dropdown-Default-hover); }
+    .dd-item svg { color: var(--icon-icon-default); flex-shrink: 0; }
+    .dd-item.dd-danger { color: var(--text-danger); }
+    .dd-item.dd-danger svg { color: var(--text-danger); }
+
+    .dd-divider {
+      height: 1px;
+      background: var(--components-Menu_Dropdown-Border-fill);
+      margin: 4px 0;
+    }
+
+    /* ─── Main document area ─── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      background: #F0F1F2;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 24px;
+    }
+
+    .doc-page {
+      background: var(--background-default);
+      width: 100%;
+      max-width: 740px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    .doc-estimate-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 740px;
+      margin-bottom: 12px;
+    }
+    .doc-estimate-heading-title {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+    .doc-estimate-heading-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .option-block {
+      border-top: 1px solid var(--border-default);
+    }
+
+    .option-block-header {
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .option-accent-bar {
+      height: 4px;
+      width: 44px;
+      background: var(--border-primary);
+      border-radius: 2px;
+      margin-bottom: 10px;
+    }
+
+    .option-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .option-title-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .option-title-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+    .option-title-name button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      padding: 0;
+      display: flex;
+      opacity: 0;
+      transition: opacity 150ms ease;
+    }
+    .option-block-header:hover .option-title-name button { opacity: 1; }
+
+    .option-add-summary {
+      font-size: var(--Sizes-Small);
+      color: var(--text-link);
+      cursor: pointer;
+      transition: color 150ms ease;
+    }
+    .option-add-summary:hover { color: var(--text-link-hover); text-decoration: underline; }
+
+    .option-block-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .icon-btn:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+
+    .edit-option-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      height: 32px;
+      border-radius: var(--radius-circle);
+      border: none;
+      background: var(--components-button-alternative);
+      color: var(--text-link);
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .edit-option-btn:hover { background: var(--components-button-alternative-hover); }
+
+    /* Items table */
+    .option-block-body { padding: 20px 28px; }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .items-table th {
+      text-align: left;
+      font-size: var(--Sizes-Smaller);
+      font-weight: 400;
+      color: var(--text-muted);
+      padding: 0 0 8px;
+      border-bottom: 1px solid var(--border-default);
+    }
+    .items-table th:not(:first-child) { text-align: right; }
+    .items-table td {
+      font-size: var(--Sizes-Small);
+      color: var(--text-default);
+      padding: 10px 0;
+      border-bottom: 1px solid var(--background-secondary);
+    }
+    .items-table td:not(:first-child) { text-align: right; color: var(--text-muted); }
+    .items-table tr:last-child td { border-bottom: none; }
+
+    .add-row-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 4px;
+    }
+    .add-row-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--Sizes-Small);
+      color: var(--text-link);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+      transition: color 150ms ease;
+    }
+    .add-row-btn:hover { color: var(--text-link-hover); }
+
+    .estimate-subtotal {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      font-size: var(--Sizes-Small);
+      font-weight: 500;
+      color: var(--text-default);
+    }
+
+    /* Doc footer */
+    .doc-footer {
+      border-top: 1px solid var(--border-default);
+      padding: 20px 28px 28px;
+    }
+    .doc-footer-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+    .doc-footer-contact {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .doc-footer-contact span {
+      font-size: var(--Sizes-Small);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .doc-footer-brand {
+      font-size: 18px;
+      font-weight: 500;
+      color: #CC1F1F;
+      letter-spacing: 0.04em;
+    }
+
+    /* Right panel */
+    .right-panel {
+      width: 60px;
+      flex-shrink: 0;
+      background: var(--background-default);
+      border-left: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 0;
+      gap: 4px;
+    }
+
+    .rp-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 8px 6px;
+      border-radius: var(--radius-md);
+      width: 52px;
+      transition: background 150ms ease;
+      position: relative;
+    }
+    .rp-item:hover { background: var(--background-secondary); }
+    .rp-item svg { color: var(--icon-icon-muted); }
+    .rp-item span {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .supplier-dot {
+      position: absolute;
+      top: 7px;
+      right: 9px;
+      width: 8px;
+      height: 8px;
+      background: var(--roofr-green);
+      border-radius: var(--radius-circle);
+      border: 1.5px solid var(--background-default);
+    }
+
+    /* Bottom bar */
+    .bottombar {
+      height: 44px;
+      border-top: 1px solid var(--border-default);
+      background: var(--background-default);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 16px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .zoom-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      background: transparent;
+      transition: background 150ms ease;
+    }
+    .zoom-btn:hover { background: var(--background-secondary); }
+
+    .zoom-value {
+      font-size: var(--Sizes-Small);
+      color: var(--text-default);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      cursor: default;
+      padding: 0 4px;
+    }
+
+    /* ─── Proto bar / view toggle ─── */
+    .proto-bar {
+      height: 36px;
+      background: var(--background-default);
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 200;
+    }
+    .proto-bar-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-inactive);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .view-toggle {
+      display: flex;
+      background: var(--background-secondary);
+      border-radius: var(--radius-circle);
+      padding: 3px;
+      gap: 2px;
+    }
+    .view-toggle-btn {
+      padding: 3px 14px;
+      border-radius: var(--radius-circle);
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: all 150ms ease;
+    }
+    .view-toggle-btn.active {
+      background: var(--background-default);
+      color: var(--text-default);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+    }
+
+    /* ─── View panes ─── */
+    .view-pane {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ─── Cover page ─── */
+    .cover-view {
+      overflow-y: auto;
+      background: var(--background-secondary);
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .cover-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 32px 64px;
+      width: 100%;
+    }
+    .cover-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--roofr-blue-10);
+      color: var(--text-link);
+      border-radius: var(--radius-circle);
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .cover-title {
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text-highlight);
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    .cover-meta {
+      font-size: 12px;
+      color: var(--text-inactive);
+      margin-bottom: 40px;
+    }
+    .cover-section {
+      margin-bottom: 36px;
+    }
+    .cover-section-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .cover-problem {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-default);
+      background: var(--background-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+    }
+    .cover-states-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-default);
+    }
+    .cover-state-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 16px;
+      background: var(--background-default);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .cover-state-row + .cover-state-row { border-top: 1px solid var(--border-default); }
+    .cover-state-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+    .cover-state-name { font-weight: 500; color: var(--text-default); }
+    .cover-state-desc { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+    .cover-state-tag {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: var(--radius-circle);
+    }
+    .cover-state-tag.high { background: #FEE2E2; color: #991B1B; }
+    .cover-state-tag.medium { background: #FEF9C3; color: #854D0E; }
+    .cover-state-tag.low { background: var(--background-secondary); color: var(--text-muted); }
+    .cover-source-list {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .cover-source-list code {
+      background: var(--background-quaternary);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      color: var(--text-default);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .cover-divider {
+      border: none;
+      border-top: 1px solid var(--border-default);
+      margin: 36px 0;
+    }
+
+    /* ─── Mobile view ─── */
+    .mobile-view {
+      align-items: center;
+      justify-content: center;
+      background: #E8E8ED;
+      overflow-y: auto;
+    }
+    .phone-wrap {
+      padding: 40px 32px;
+    }
+    .phone-frame {
+      width: 375px;
+      height: 720px;
+      background: #F2F2F7;
+      border-radius: 44px;
+      border: 1.5px solid #C6C6C8;
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.18),
+        0 4px 16px rgba(0,0,0,0.10);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    /* Status bar */
+    .phone-status-bar {
+      height: 44px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 22px 10px;
+      flex-shrink: 0;
+      background: #F2F2F7;
+    }
+    .m-status-time {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-highlight);
+    }
+    .m-status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-highlight);
+    }
+
+    /* Mobile topbar */
+    .m-topbar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px 0 8px;
+      flex-shrink: 0;
+      background: #F2F2F7;
+    }
+    .m-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      font-size: 17px;
+      font-family: inherit;
+      color: var(--text-link);
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+    .m-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .m-icon-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-circle);
+      border: none;
+      background: #E5E5EA;
+      cursor: pointer;
+      color: var(--icon-icon-default);
+      transition: background 150ms ease;
+    }
+    .m-icon-btn:hover { background: #D1D1D6; }
+    .m-send-btn {
+      padding: 0 18px;
+      height: 36px;
+      border-radius: var(--radius-circle);
+      border: none;
+      background: var(--background-contrast);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .m-send-btn:hover { background: var(--roofr-blue-20B); }
+
+    /* Autosave + draft row */
+    .m-status-row {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      flex-shrink: 0;
+      background: #F2F2F7;
+    }
+    .m-autosave {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .m-draft-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--background-accent-upgrade);
+      border: 1px solid #FFE195;
+      color: #5D4C1D;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* Doc area behind the sheet */
+    .m-doc-content {
+      flex: 1;
+      padding: 12px 12px 0;
+      min-height: 0;
+      overflow: hidden;
+      background: #F2F2F7;
+    }
+    .m-doc-card {
+      background: var(--background-default);
+      border-radius: 10px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .m-option-heading-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .m-option-title-main {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .m-option-heading-name {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-highlight);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .m-pencil-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--text-link);
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+    }
+    .m-doc-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .m-doc-action-btn {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      transition: background 150ms ease;
+    }
+    .m-doc-action-btn:hover { background: var(--background-secondary); }
+    .m-doc-action-btn.danger { color: var(--text-danger); }
+    .m-doc-action-btn.danger:hover { background: var(--background-accent-danger); }
+    .m-summary-heading {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .m-doc-preview-box {
+      border: 1px solid #D1D1D6;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Bottom sheet */
+    .m-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 430px;
+      background: var(--background-default);
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -2px 16px rgba(0,0,0,0.08), 0 -1px 0 var(--border-default);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .m-sheet-handle-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 4px;
+      flex-shrink: 0;
+    }
+    .m-sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--roofr-mist-20B);
+      border-radius: 2px;
+    }
+    .m-sheet-scroll {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* Sheet rows */
+    .m-section-row {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 8px 0 12px;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .m-section-row:hover { background: var(--background-secondary); }
+    .m-estimate-header-row {
+      display: flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 8px 0 12px;
+      cursor: pointer;
+      background: var(--background-secondary);
+      border-top: 1px solid var(--border-default);
+      border-bottom: 1px solid var(--border-default);
+      transition: background 150ms ease;
+    }
+    .m-estimate-header-row:hover { background: var(--background-quaternary); }
+    .m-drag-handle {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--icon-icon-inactive);
+      flex-shrink: 0;
+    }
+    .m-section-label {
+      flex: 1;
+      font-size: 15px;
+      color: var(--text-default);
+      padding: 0 8px;
+    }
+    .m-estimate-label {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-default);
+      padding: 0 8px;
+    }
+    .m-sh-icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--icon-icon-muted);
+      flex-shrink: 0;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .m-sh-icon-btn:hover { background: var(--background-quaternary); color: var(--icon-icon-default); }
+
+    /* Option rows in sheet */
+    .m-opt-row {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px 0 20px;
+      cursor: pointer;
+      transition: background 150ms ease;
+      position: relative;
+      user-select: none;
+    }
+    .m-opt-row:hover { background: var(--background-secondary); }
+    .m-opt-row.is-active { background: var(--background-accent-primary); }
+    .m-opt-row.is-active .m-opt-label { font-weight: 500; }
+    .m-opt-row.is-editing { background: var(--background-default) !important; cursor: default; }
+    .m-opt-label {
+      flex: 1;
+      font-size: 15px;
+      color: var(--text-default);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 4px;
+      min-width: 0;
+    }
+    .m-opt-menu-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      color: var(--icon-icon-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      border: none;
+      background: transparent;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .m-opt-menu-btn:hover { background: var(--background-quaternary); color: var(--icon-icon-default); }
+    .m-opt-menu-btn.is-open { background: var(--background-quaternary); color: var(--icon-icon-default); }
+    .m-sheet-summary-row {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px 0 48px;
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .m-sheet-summary-row:hover { background: var(--background-secondary); }
+    .m-sheet-summary-row span { font-size: 15px; color: var(--text-muted); }
+    .m-add-section-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: calc(100% - 24px);
+      margin: 8px 12px 12px;
+      height: 44px;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      background: transparent;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text-link);
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .m-add-section-btn:hover { border-color: var(--border-primary-subtle); background: var(--background-accent-primary); }
+
+    /* Mobile inline edit */
+    .m-opt-edit-input {
+      flex: 1;
+      height: 30px;
+      padding: 0 8px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--components-input-content-default);
+      background: var(--components-input-background-default);
+      border: 1.5px solid var(--components-input-border-active);
+      border-radius: var(--components-input-radius);
+      outline: none;
+      box-shadow: 0 0 0 2.5px var(--roofr-blue-50);
+      min-width: 0;
+    }
+    .m-opt-edit-actions {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      margin-left: 4px;
+    }
+    .m-opt-edit-btn {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+      font-family: inherit;
+    }
+    .m-opt-edit-btn.m-cancel-btn { color: var(--icon-icon-muted); }
+    .m-opt-edit-btn.m-cancel-btn:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+    .m-opt-edit-btn.m-confirm-btn { color: var(--roofr-green); }
+    .m-opt-edit-btn.m-confirm-btn:hover { background: var(--background-accent-success); color: var(--roofr-green-5B); }
+
+    /* Sheet animate for keyboard */
+    .m-sheet {
+      transition: bottom 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                  height 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* iOS Keyboard */
+    .m-keyboard {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 260px;
+      background: #D1D4DA;
+      z-index: 25;
+      transform: translateY(100%);
+      transition: transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .m-keyboard.is-visible { transform: translateY(0); }
+
+    .m-kb-toolbar {
+      height: 44px;
+      background: #CDD0D7;
+      border-top: 0.5px solid #969AA3;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 14px;
+      flex-shrink: 0;
+    }
+    .m-kb-done-btn {
+      font-size: 16px;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--text-link);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .m-kb-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 3px 4px;
+      gap: 10px;
+    }
+    .m-kb-row {
+      display: flex;
+      gap: 5px;
+      flex: 1;
+    }
+    .m-kb-row-center { padding: 0 19px; }
+    .m-kb-key {
+      background: #FFFFFF;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      color: #000;
+      box-shadow: 0 1px 0 0.5px rgba(0,0,0,0.28);
+      flex: 1;
+      cursor: default;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .m-kb-key.dark {
+      background: #ADB5C0;
+      font-size: 14px;
+      color: #000;
+    }
+    .m-kb-key.wide-action { flex: 1.45; }
+    .m-kb-key.wide-num { flex: 1.4; font-size: 14px; }
+    .m-kb-key.wide-space { flex: 4.6; font-size: 15px; }
+    .m-kb-key.wide-return { flex: 1.85; font-size: 14px; }
+
+    /* Mobile dropdown — absolute within phone-frame */
+    .m-dropdown {
+      position: absolute;
+      background: var(--components-Menu_Dropdown-Default-fill);
+      border: 1px solid var(--components-Menu_Dropdown-Border-fill);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.06);
+      z-index: 50;
+      overflow: hidden;
+      padding: 4px 0;
+      min-width: 170px;
+      transform-origin: top right;
+      animation: ddIn 120ms ease-out forwards;
+    }
+    .m-dropdown .dd-item {
+      height: 44px;
+      font-size: 15px;
+      padding: 0 16px;
+    }
+    .m-dropdown .dd-item svg { width: 15px; height: 15px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Proto bar ── -->
+  <div class="proto-bar">
+    <span class="proto-bar-label">Rename Estimate Option</span>
+    <div class="view-toggle">
+      <button class="view-toggle-btn" id="toggle-cover" onclick="switchView('cover')">Cover</button>
+      <button class="view-toggle-btn active" id="toggle-desktop" onclick="switchView('desktop')">Desktop</button>
+      <button class="view-toggle-btn" id="toggle-mobile" onclick="switchView('mobile')">Mobile</button>
+    </div>
+  </div>
+
+  <!-- ── Cover page ── -->
+  <div id="cover-view" class="view-pane cover-view" style="display:none">
+    <div class="cover-inner">
+
+      <div class="cover-chip">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Prototype
+      </div>
+      <div class="cover-title">Rename Estimate Option</div>
+      <div class="cover-meta">Last audited: May 4, 2026</div>
+
+      <!-- Problem -->
+      <div class="cover-section">
+        <div class="cover-section-title">Problem Statement</div>
+        <div class="cover-problem">
+          Renaming an estimate option today requires clicking a pencil icon directly on the document, which is buried and forces the user to leave the sidebar to do something that's fundamentally a navigation management action. Contractors building multi-option proposals need to label options meaningfully (Good/Better/Best, versioned quotes) without losing context in the sidebar.
+        </div>
+      </div>
+
+      <hr class="cover-divider">
+
+      <!-- Designed states -->
+      <div class="cover-section">
+        <div class="cover-section-title">States in this prototype</div>
+        <div class="cover-states-list">
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Default — sidebar with option rows</div><div class="cover-state-desc">Hover reveals triple-dot menu on each option row (desktop + mobile sheet)</div></div>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Dropdown open</div><div class="cover-state-desc">Duplicate / Rename / Delete — Rename positioned between them</div></div>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Rename active — inline edit</div><div class="cover-state-desc">Input replaces label, text selected, X and checkmark appear, drag handle hidden</div></div>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Confirm (Enter or checkmark)</div><div class="cover-state-desc">Name saves, input collapses; syncs to document heading</div></div>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Cancel (Escape, X, or click outside)</div><div class="cover-state-desc">Reverts to original name silently</div></div>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Empty field on confirm</div><div class="cover-state-desc">Reverts to original name silently — no toast, no error</div></div>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">✅</span>
+            <div><div class="cover-state-name">Mobile — bottom sheet with keyboard</div><div class="cover-state-desc">iOS keyboard slides up; sheet adjusts; Done button confirms</div></div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cover-divider">
+
+      <!-- Missing states -->
+      <div class="cover-section">
+        <div class="cover-section-title">States still needed</div>
+        <div class="cover-states-list">
+          <div class="cover-state-row">
+            <span class="cover-state-icon">🔴</span>
+            <div>
+              <div class="cover-state-name">Save error</div>
+              <div class="cover-state-desc">API PUT fails — sidebar shows new name but backend rejected it. Need visual recovery: auto-revert + inline error or toast.</div>
+            </div>
+            <span class="cover-state-tag high">High</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">🔴</span>
+            <div>
+              <div class="cover-state-name">Locked proposal — Rename absent</div>
+              <div class="cover-state-desc">When status is LOCKED (sent/viewed), isEditingDisabled is true. Rename should not appear in the dropdown.</div>
+            </div>
+            <span class="cover-state-tag high">High</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">🔴</span>
+            <div>
+              <div class="cover-state-name">No edit permission — Rename absent</div>
+              <div class="cover-state-desc">hasEditPermission / ProposalPolicy check gates all edit actions. View-only users should not see Rename.</div>
+            </div>
+            <span class="cover-state-tag high">High</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">🟡</span>
+            <div>
+              <div class="cover-state-name">Save in progress</div>
+              <div class="cover-state-desc">isSaving state exists in OptionDisplay.tsx for other actions but not for rename. Need a subtle in-flight indicator on the checkmark/Done button.</div>
+            </div>
+            <span class="cover-state-tag medium">Medium</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">🟡</span>
+            <div>
+              <div class="cover-state-name">maxLength: 80 vs 100 — needs alignment</div>
+              <div class="cover-state-desc">QuoteDetailHeading.tsx uses maxLength=80. Backend NAME_MAX_LENGTH=100. This prototype uses 100. Engineering needs to align these before implementation.</div>
+            </div>
+            <span class="cover-state-tag medium">Medium</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">🟡</span>
+            <div>
+              <div class="cover-state-name">Delete hidden when only one option</div>
+              <div class="cover-state-desc">canDeleteOption = variations.length > 1 in OptionDisplay.tsx. Prototype shows Delete unconditionally.</div>
+            </div>
+            <span class="cover-state-tag medium">Medium</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">⚪</span>
+            <div>
+              <div class="cover-state-name">Long name rendering at max length</div>
+              <div class="cover-state-desc">PRD open question: does the document heading truncate or wrap at 80–100 chars? Needs a quick visual check at the extremes.</div>
+            </div>
+            <span class="cover-state-tag low">Low</span>
+          </div>
+          <div class="cover-state-row">
+            <span class="cover-state-icon">⚪</span>
+            <div>
+              <div class="cover-state-name">Optimistic rollback on save failure</div>
+              <div class="cover-state-desc">updateQuoteVariationFail() dispatch doesn't restore the sidebar label. Need design for the auto-revert path (also covers mobile offline scenario).</div>
+            </div>
+            <span class="cover-state-tag low">Low</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="cover-divider">
+
+      <!-- Sources -->
+      <div class="cover-section">
+        <div class="cover-section-title">Sources</div>
+        <div class="cover-source-list">
+          <strong>GitHub:</strong> <code>quoteDetailActions.js</code>, <code>QuoteVariationDropdown.tsx</code>, <code>QuoteDetails.tsx</code>, <code>OptionDisplay.tsx</code>, <code>QuoteDetailHeading.tsx</code>, <code>proposal-status.ts</code><br>
+          <strong>Figma:</strong> None provided<br>
+          <strong>Jira:</strong> Not searched
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Desktop view ── -->
+  <div id="desktop-view" class="view-pane">
+
+  <!-- ── Top bar ── -->
+  <header class="topbar">
+    <div class="topbar-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to proposals
+    </div>
+    <div class="topbar-autosave">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+      </svg>
+      Changes auto-saved
+    </div>
+    <div class="topbar-address">
+      1055 11 Street Southwest, Calgary, AB T2R 1G8
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-draft">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Draft
+      </button>
+      <button class="btn btn-ghost">Preview</button>
+      <button class="btn btn-primary">Send</button>
+    </div>
+  </header>
+
+  <!-- ── Main layout ── -->
+  <div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <div class="sidebar-toggle">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </div>
+
+      <!-- Customer -->
+      <div class="sb-section">
+        <div class="sb-section-label">Customer</div>
+        <div class="customer-card">
+          <div class="customer-name-row">
+            Avery Tester
+            <button>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+              </svg>
+            </button>
+          </div>
+          <div class="customer-email">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+            asdsad@adsad.ca
+          </div>
+        </div>
+        <button class="cosigner-btn">Add cosigner</button>
+      </div>
+
+      <!-- Related -->
+      <div class="sb-section">
+        <div class="sb-section-label">Related</div>
+        <div class="related-links">
+          <div class="related-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+            View job details
+          </div>
+        </div>
+      </div>
+
+      <!-- Proposal sections nav -->
+      <div class="sb-nav">
+        <div class="sb-nav-header">
+          <span>Proposal sections</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+        </div>
+
+        <!-- Cover block -->
+        <div class="sb-cover-block">
+          <div class="sb-cover">
+            <div class="sb-cover-label">Cover</div>
+          </div>
+        </div>
+
+        <!-- Estimate block -->
+        <div class="sb-estimate-block">
+
+          <!-- Estimate header row -->
+          <div class="sb-estimate-group">
+            <div class="drag-handle">
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+              </svg>
+            </div>
+            <div class="sb-estimate-label">Estimate</div>
+            <div class="sb-add-btn" onclick="event.stopPropagation()" title="Add option">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Option 1 -->
+          <div class="sb-opt-row is-active" id="row-opt1" onclick="handleRowClick('opt1')">
+            <div class="drag-handle">
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+              </svg>
+            </div>
+            <div class="opt-label" id="lbl-opt1">Option 1</div>
+            <div class="opt-menu-btn" id="mbtn-opt1" onclick="event.stopPropagation(); openMenu('opt1', event)" title="More actions">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Option 2 -->
+          <div class="sb-opt-row" id="row-opt2" onclick="handleRowClick('opt2')">
+            <div class="drag-handle">
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+              </svg>
+            </div>
+            <div class="opt-label" id="lbl-opt2">Copy of Option 1</div>
+            <div class="opt-menu-btn" id="mbtn-opt2" onclick="event.stopPropagation(); openMenu('opt2', event)" title="More actions">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="sb-summary-row">
+            <div class="sb-summary-label">Summary</div>
+          </div>
+
+        </div><!-- /sb-estimate-block -->
+
+        <!-- Add section -->
+        <div class="sb-add-section">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Document / main area ── -->
+    <main class="main">
+      <div class="doc-estimate-heading">
+        <span class="doc-estimate-heading-title">Estimate</span>
+        <div class="doc-estimate-heading-actions">
+          <button class="icon-btn" title="Duplicate">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+          <button class="edit-option-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+            </svg>
+            Edit option
+          </button>
+        </div>
+      </div>
+
+      <div class="doc-page">
+
+        <div class="option-block">
+          <div class="option-block-header">
+            <div class="option-title-row">
+              <div class="option-title-left">
+                <div class="option-accent-bar"></div>
+                <div class="option-title-name">
+                  <span id="doc-title">Option 1</span>
+                  <button title="Rename">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                  </button>
+                </div>
+                <span class="option-add-summary">Add summary</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="option-block-body">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Unit price</th>
+                  <th>Qty</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>IKO StormShield</td>
+                  <td>$0.00</td>
+                  <td>5 Roll</td>
+                  <td>$0.00</td>
+                </tr>
+                <tr>
+                  <td>IKO Cambridge</td>
+                  <td>$44.35</td>
+                  <td>97 Default</td>
+                  <td>$4,301.95</td>
+                </tr>
+                <tr>
+                  <td>IKO Nordic</td>
+                  <td>$0.00</td>
+                  <td>6 Default</td>
+                  <td>$0.00</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="add-row-actions">
+              <button class="add-row-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                Add item
+              </button>
+              <button class="add-row-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                Add section heading
+              </button>
+              <button class="add-row-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                Add upgrade
+              </button>
+            </div>
+          </div>
+
+          <div class="estimate-subtotal">
+            <span>Estimate subtotal</span>
+            <span>$4,301.95</span>
+          </div>
+        </div>
+
+        <!-- Doc footer -->
+        <div class="doc-footer">
+          <div class="doc-footer-inner">
+            <div class="doc-footer-contact">
+              <span>Jim McMahon</span>
+              <span>Elite Team</span>
+              <span>(416) 458-5987</span>
+              <span>elite@roofr.com</span>
+            </div>
+            <div class="doc-footer-brand">GAF</div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ── Right panel ── -->
+    <div class="right-panel">
+      <div class="rp-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+        <span>Estimate settings</span>
+      </div>
+      <div class="rp-item">
+        <div class="supplier-dot"></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        <span>Supplier</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Bottom bar ── -->
+  <div class="bottombar">
+    <button class="zoom-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+    <div class="zoom-value">
+      100%
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <button class="zoom-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Dropdown portal -->
+  <div id="dd-portal"></div>
+
+  </div><!-- /desktop-view -->
+
+  <!-- ── Mobile view ── -->
+  <div id="mobile-view" class="view-pane mobile-view" style="display:none">
+    <div class="phone-wrap">
+      <div class="phone-frame">
+
+        <!-- Status bar -->
+        <div class="phone-status-bar">
+          <span class="m-status-time">9:41</span>
+          <div class="m-status-icons">
+            <!-- Signal -->
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor">
+              <rect x="0" y="8" width="3" height="4" rx="0.5"/>
+              <rect x="4.5" y="5.5" width="3" height="6.5" rx="0.5"/>
+              <rect x="9" y="3" width="3" height="9" rx="0.5"/>
+              <rect x="13.5" y="0" width="3" height="12" rx="0.5"/>
+            </svg>
+            <!-- WiFi -->
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-linecap="round">
+              <circle cx="8" cy="10.5" r="1.5" fill="currentColor" stroke="none"/>
+              <path stroke-width="1.5" d="M4.2 7.2a5.4 5.4 0 0 1 7.6 0"/>
+              <path stroke-width="1.5" d="M1.2 4.2a9.6 9.6 0 0 1 13.6 0"/>
+            </svg>
+            <!-- Battery -->
+            <svg width="25" height="12" viewBox="0 0 25 12">
+              <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" stroke-width="1" fill="none"/>
+              <rect x="22" y="3.5" width="2.5" height="5" rx="1" fill="currentColor" opacity="0.4"/>
+              <rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Top nav -->
+        <div class="m-topbar">
+          <button class="m-back-btn">
+            <svg width="10" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back
+          </button>
+          <div class="m-topbar-right">
+            <button class="m-icon-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+              </svg>
+            </button>
+            <button class="m-icon-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+            <button class="m-send-btn">Send</button>
+          </div>
+        </div>
+
+        <!-- Autosave + Draft -->
+        <div class="m-status-row">
+          <div class="m-autosave">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+            </svg>
+            All changes saved.
+          </div>
+          <div class="m-draft-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Draft
+          </div>
+        </div>
+
+        <!-- Document content (visible above sheet) -->
+        <div class="m-doc-content">
+          <div class="m-doc-card">
+            <div class="m-option-heading-row">
+              <div class="m-option-title-main">
+                <span class="m-option-heading-name" id="m-doc-title">Option 1</span>
+                <button class="m-pencil-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="m-doc-actions">
+                <button class="m-doc-action-btn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                </button>
+                <button class="m-doc-action-btn danger">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="m-summary-heading">Summary</div>
+            <div class="m-doc-preview-box">Here is an example of a simple option, with some content that would go here...</div>
+          </div>
+        </div>
+
+        <!-- Bottom sheet -->
+        <div class="m-sheet">
+          <div class="m-sheet-handle-wrap">
+            <div class="m-sheet-handle"></div>
+          </div>
+          <div class="m-sheet-scroll">
+
+            <!-- Cover -->
+            <div class="m-section-row" style="padding-left: 28px;">
+              <span class="m-section-label" style="padding-left: 0;">Cover</span>
+            </div>
+
+            <!-- Text Section -->
+            <div class="m-section-row">
+              <div class="m-drag-handle">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                  <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                  <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                  <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                </svg>
+              </div>
+              <span class="m-section-label">Text Section About Roofing</span>
+              <button class="m-sh-icon-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Estimate header -->
+            <div class="m-estimate-header-row">
+              <div class="m-drag-handle">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                  <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                  <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                  <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                </svg>
+              </div>
+              <span class="m-estimate-label">Estimate</span>
+              <button class="m-sh-icon-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+              <button class="m-sh-icon-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="18 15 12 9 6 15"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Option 1 -->
+            <div class="m-opt-row is-active" id="m-row-opt1" onclick="mHandleRowClick('opt1')">
+              <div class="m-drag-handle">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                  <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                  <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                  <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                </svg>
+              </div>
+              <span class="m-opt-label" id="m-lbl-opt1">Option 1</span>
+              <button class="m-opt-menu-btn" id="m-mbtn-opt1" onclick="event.stopPropagation(); mOpenMenu('opt1', event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Option 2 -->
+            <div class="m-opt-row" id="m-row-opt2" onclick="mHandleRowClick('opt2')">
+              <div class="m-drag-handle">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                  <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                  <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                  <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                </svg>
+              </div>
+              <span class="m-opt-label" id="m-lbl-opt2">Option 2</span>
+              <button class="m-opt-menu-btn" id="m-mbtn-opt2" onclick="event.stopPropagation(); mOpenMenu('opt2', event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Summary -->
+            <div class="m-sheet-summary-row">
+              <span>Summary</span>
+            </div>
+
+            <!-- GAF Brochure -->
+            <div class="m-section-row">
+              <div class="m-drag-handle">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                  <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                  <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                  <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                </svg>
+              </div>
+              <span class="m-section-label">GAF Brochure</span>
+              <button class="m-sh-icon-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Malarkey Brochure -->
+            <div class="m-section-row">
+              <div class="m-drag-handle">
+                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                  <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+                  <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+                  <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+                </svg>
+              </div>
+              <span class="m-section-label">Malarkey Brochure</span>
+              <button class="m-sh-icon-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Add new section -->
+            <button class="m-add-section-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              Add new section
+            </button>
+
+          </div>
+        </div>
+
+        <!-- iOS Keyboard -->
+        <div class="m-keyboard" id="m-keyboard">
+          <div class="m-kb-toolbar">
+            <button class="m-kb-done-btn" onmousedown="event.preventDefault()" onclick="mKbDone()">Done</button>
+          </div>
+          <div class="m-kb-body">
+            <div class="m-kb-row">
+              <div class="m-kb-key">Q</div><div class="m-kb-key">W</div><div class="m-kb-key">E</div>
+              <div class="m-kb-key">R</div><div class="m-kb-key">T</div><div class="m-kb-key">Y</div>
+              <div class="m-kb-key">U</div><div class="m-kb-key">I</div><div class="m-kb-key">O</div>
+              <div class="m-kb-key">P</div>
+            </div>
+            <div class="m-kb-row m-kb-row-center">
+              <div class="m-kb-key">A</div><div class="m-kb-key">S</div><div class="m-kb-key">D</div>
+              <div class="m-kb-key">F</div><div class="m-kb-key">G</div><div class="m-kb-key">H</div>
+              <div class="m-kb-key">J</div><div class="m-kb-key">K</div><div class="m-kb-key">L</div>
+            </div>
+            <div class="m-kb-row">
+              <div class="m-kb-key dark wide-action">
+                <svg width="16" height="14" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="2 10 11 1 20 10"/><line x1="11" y1="1" x2="11" y2="15"/>
+                </svg>
+              </div>
+              <div class="m-kb-key">Z</div><div class="m-kb-key">X</div><div class="m-kb-key">C</div>
+              <div class="m-kb-key">V</div><div class="m-kb-key">B</div><div class="m-kb-key">N</div>
+              <div class="m-kb-key">M</div>
+              <div class="m-kb-key dark wide-action">
+                <svg width="17" height="13" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 7h13M8 1l6 6-6 6"/><rect x="0.5" y="0.5" width="8" height="13" rx="2" fill="currentColor" stroke="none" opacity="0.15"/>
+                </svg>
+              </div>
+            </div>
+            <div class="m-kb-row">
+              <div class="m-kb-key dark wide-num">123</div>
+              <div class="m-kb-key dark" style="flex:1.2; font-size:13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 8v4M12 16h.01"/>
+                </svg>
+              </div>
+              <div class="m-kb-key wide-space">space</div>
+              <div class="m-kb-key dark wide-return">return</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /phone-frame -->
+    </div><!-- /phone-wrap -->
+  </div><!-- /mobile-view -->
+
+  <script>
+    // ── State ──
+    let activeOpt = 'opt1';
+    let openMenuOpt = null;
+    let editingOpt = null;
+
+    // ── Row click ──
+    function handleRowClick(optId) {
+      if (editingOpt) return;
+      setActive(optId);
+    }
+
+    function setActive(optId) {
+      document.querySelectorAll('.sb-opt-row').forEach(row => row.classList.remove('is-active'));
+      document.getElementById('row-' + optId).classList.add('is-active');
+      activeOpt = optId;
+    }
+
+    // ── Drag to reorder ──
+    (function initDrag() {
+      let dragRow = null, placeholder = null, startY = 0, rowH = 0;
+
+      document.querySelectorAll('.drag-handle').forEach(handle => {
+        // Only option rows (not estimate header)
+        const row = handle.closest('.sb-opt-row');
+        if (!row) return;
+
+        handle.addEventListener('mousedown', (e) => {
+          if (editingOpt) return;
+          e.preventDefault();
+          dragRow = row;
+          rowH = row.offsetHeight;
+          startY = e.clientY;
+
+          placeholder = document.createElement('div');
+          placeholder.style.cssText = `height:${rowH}px;background:var(--background-accent-primary);border-left:none;opacity:0.4;`;
+          row.parentNode.insertBefore(placeholder, row.nextSibling);
+
+          row.style.cssText = `position:fixed;width:${row.offsetWidth}px;top:${row.getBoundingClientRect().top}px;left:${row.getBoundingClientRect().left}px;z-index:400;box-shadow:0 4px 12px rgba(0,0,0,0.15);opacity:0.95;pointer-events:none;`;
+
+          document.addEventListener('mousemove', onDragMove);
+          document.addEventListener('mouseup', onDragEnd, { once: true });
+        });
+      });
+
+      function onDragMove(e) {
+        if (!dragRow) return;
+        const dy = e.clientY - startY;
+        const rect = dragRow.getBoundingClientRect();
+        dragRow.style.top = (rect.top + dy) + 'px';
+        startY = e.clientY;
+
+        // Swap placeholder with sibling based on position
+        const dragCenter = dragRow.getBoundingClientRect().top + rowH / 2;
+        const siblings = [...placeholder.parentNode.querySelectorAll('.sb-opt-row:not([style*="fixed"])')];
+        siblings.forEach(sib => {
+          const sibRect = sib.getBoundingClientRect();
+          const sibMid = sibRect.top + sibRect.height / 2;
+          if (dragCenter < sibMid && placeholder.nextSibling !== sib) {
+            sib.parentNode.insertBefore(placeholder, sib);
+          } else if (dragCenter > sibMid && sib.nextSibling !== placeholder) {
+            sib.parentNode.insertBefore(placeholder, sib.nextSibling);
+          }
+        });
+      }
+
+      function onDragEnd() {
+        if (!dragRow) return;
+        document.removeEventListener('mousemove', onDragMove);
+        dragRow.style.cssText = '';
+        placeholder.parentNode.insertBefore(dragRow, placeholder);
+        placeholder.remove();
+        dragRow = null;
+        placeholder = null;
+      }
+    })();
+
+    // ── Dropdown ──
+    function openMenu(optId, e) {
+      e.stopPropagation();
+      if (openMenuOpt === optId) { closeMenu(); return; }
+      closeMenu();
+
+      openMenuOpt = optId;
+      document.getElementById('mbtn-' + optId).classList.add('is-open');
+
+      const btn = document.getElementById('mbtn-' + optId);
+      const rect = btn.getBoundingClientRect();
+
+      const dd = document.createElement('div');
+      dd.className = 'dropdown';
+      dd.id = 'active-dropdown';
+      dd.style.cssText = `top:${rect.bottom + 4}px; right:${window.innerWidth - rect.right}px;`;
+
+      dd.innerHTML = `
+        <div class="dd-item" onclick="handleDuplicate('${optId}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Duplicate
+        </div>
+        <div class="dd-item" onclick="startRename('${optId}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          </svg>
+          Rename
+        </div>
+        <div class="dd-divider"></div>
+        <div class="dd-item dd-danger" onclick="handleDelete('${optId}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+          Delete
+        </div>
+      `;
+
+      document.getElementById('dd-portal').appendChild(dd);
+
+      // Close on outside click
+      setTimeout(() => {
+        document.addEventListener('click', onOutsideClick, { once: true });
+      }, 0);
+    }
+
+    function onOutsideClick(e) {
+      const dd = document.getElementById('active-dropdown');
+      if (dd && !dd.contains(e.target)) closeMenu();
+    }
+
+    function closeMenu() {
+      if (openMenuOpt) {
+        const btn = document.getElementById('mbtn-' + openMenuOpt);
+        if (btn) btn.classList.remove('is-open');
+        openMenuOpt = null;
+      }
+      const dd = document.getElementById('active-dropdown');
+      if (dd) dd.remove();
+      document.removeEventListener('click', onOutsideClick);
+    }
+
+    function handleDuplicate(optId) { closeMenu(); }
+    function handleDelete(optId) { closeMenu(); }
+
+    // ── View switcher ──
+    function switchView(view) {
+      document.getElementById('desktop-view').style.display = view === 'desktop' ? 'flex' : 'none';
+      document.getElementById('mobile-view').style.display  = view === 'mobile'  ? 'flex' : 'none';
+      document.getElementById('cover-view').style.display   = view === 'cover'   ? 'flex' : 'none';
+      ['desktop','mobile','cover'].forEach(v => {
+        document.getElementById('toggle-' + v).classList.toggle('active', v === view);
+      });
+    }
+
+    // ── Mobile state ──
+    let mActiveOpt = 'opt1';
+    let mOpenMenuOpt = null;
+    let mEditingOpt = null;
+
+    function mHandleRowClick(optId) {
+      if (mEditingOpt) return;
+      document.querySelectorAll('.m-opt-row').forEach(r => r.classList.remove('is-active'));
+      document.getElementById('m-row-' + optId).classList.add('is-active');
+      mActiveOpt = optId;
+      document.getElementById('m-doc-title').textContent =
+        document.getElementById('m-lbl-' + optId).textContent;
+    }
+
+    function mOpenMenu(optId, e) {
+      e.stopPropagation();
+      if (mOpenMenuOpt === optId) { mCloseMenu(); return; }
+      mCloseMenu();
+
+      mOpenMenuOpt = optId;
+      document.getElementById('m-mbtn-' + optId).classList.add('is-open');
+
+      const frame = document.querySelector('.phone-frame');
+      const frameRect = frame.getBoundingClientRect();
+      const btnRect = document.getElementById('m-mbtn-' + optId).getBoundingClientRect();
+
+      const top = btnRect.bottom - frameRect.top + 4;
+      const right = frameRect.right - btnRect.right;
+
+      const dd = document.createElement('div');
+      dd.className = 'm-dropdown';
+      dd.id = 'm-active-dropdown';
+      dd.style.cssText = `top:${top}px; right:${right}px;`;
+      dd.innerHTML = `
+        <div class="dd-item" onclick="mHandleDuplicate('${optId}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>Duplicate
+        </div>
+        <div class="dd-item" onclick="mStartRename('${optId}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+          </svg>Rename
+        </div>
+        <div class="dd-divider"></div>
+        <div class="dd-item dd-danger" onclick="mHandleDelete('${optId}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>Delete
+        </div>
+      `;
+      frame.appendChild(dd);
+      setTimeout(() => { document.addEventListener('click', mOnOutsideClick, { once: true }); }, 0);
+    }
+
+    function mOnOutsideClick(e) {
+      const dd = document.getElementById('m-active-dropdown');
+      if (dd && !dd.contains(e.target)) mCloseMenu();
+    }
+
+    function mCloseMenu() {
+      if (mOpenMenuOpt) {
+        const btn = document.getElementById('m-mbtn-' + mOpenMenuOpt);
+        if (btn) btn.classList.remove('is-open');
+        mOpenMenuOpt = null;
+      }
+      const dd = document.getElementById('m-active-dropdown');
+      if (dd) dd.remove();
+      document.removeEventListener('click', mOnOutsideClick);
+    }
+
+    function mHandleDuplicate(optId) { mCloseMenu(); }
+    function mHandleDelete(optId) { mCloseMenu(); }
+
+    // ── Keyboard ──
+    const KB_H = 260;
+    const PHONE_H = 720;
+    const CHROME_H = 122; // status + topbar + statusrow
+
+    function mShowKeyboard(editingOptId) {
+      document.getElementById('m-keyboard').classList.add('is-visible');
+      const sheet = document.querySelector('.m-sheet');
+      sheet.style.bottom = KB_H + 'px';
+      sheet.style.height = (PHONE_H - CHROME_H - KB_H) + 'px';
+      // Scroll the editing row into view after the animation settles
+      setTimeout(() => {
+        const row = document.getElementById('m-row-' + editingOptId);
+        const scroll = document.querySelector('.m-sheet-scroll');
+        if (row && scroll) scroll.scrollTo({ top: Math.max(0, row.offsetTop - 56), behavior: 'smooth' });
+      }, 300);
+    }
+
+    function mHideKeyboard() {
+      document.getElementById('m-keyboard').classList.remove('is-visible');
+      const sheet = document.querySelector('.m-sheet');
+      sheet.style.bottom = '0px';
+      sheet.style.height = '430px';
+    }
+
+    function mKbDone() {
+      if (mEditingOpt) document.getElementById('m-cfbtn-' + mEditingOpt)?.click();
+    }
+
+    function mStartRename(optId) {
+      mCloseMenu();
+      mEditingOpt = optId;
+
+      const row = document.getElementById('m-row-' + optId);
+      const lbl = document.getElementById('m-lbl-' + optId);
+      const mBtn = document.getElementById('m-mbtn-' + optId);
+      const drag = row.querySelector('.m-drag-handle');
+      const originalName = lbl.textContent;
+
+      row.classList.add('is-editing');
+      drag.style.visibility = 'hidden';
+      lbl.style.display = 'none';
+      mBtn.style.display = 'none';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'm-opt-edit-input';
+      input.value = originalName;
+      input.maxLength = 100;
+      input.id = 'm-inp-' + optId;
+
+      const actions = document.createElement('div');
+      actions.className = 'm-opt-edit-actions';
+      actions.id = 'm-actions-' + optId;
+      actions.innerHTML = `
+        <button class="m-opt-edit-btn m-cancel-btn" id="m-cbtn-${optId}" title="Cancel (Esc)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <button class="m-opt-edit-btn m-confirm-btn" id="m-cfbtn-${optId}" title="Save (Enter)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+      `;
+
+      row.insertBefore(input, mBtn);
+      row.insertBefore(actions, mBtn);
+
+      mShowKeyboard(optId);
+
+      requestAnimationFrame(() => { input.focus(); input.select(); });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); mConfirmRename(optId, input.value, originalName); }
+        else if (e.key === 'Escape') { e.preventDefault(); mCancelRename(optId, originalName); }
+      });
+
+      const cancelBtn = document.getElementById('m-cbtn-' + optId);
+      const confirmBtn = document.getElementById('m-cfbtn-' + optId);
+      cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      confirmBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      cancelBtn.addEventListener('click', (e) => { e.stopPropagation(); mCancelRename(optId, originalName); });
+      confirmBtn.addEventListener('click', (e) => { e.stopPropagation(); mConfirmRename(optId, input.value, originalName); });
+
+      input.addEventListener('blur', () => {
+        requestAnimationFrame(() => { if (mEditingOpt === optId) mCancelRename(optId, originalName); });
+      });
+    }
+
+    function mConfirmRename(optId, newValue, originalName) {
+      if (mEditingOpt !== optId) return;
+      const finalName = newValue.trim() || originalName;
+      document.getElementById('m-lbl-' + optId).textContent = finalName;
+      if (document.getElementById('m-row-' + optId).classList.contains('is-active')) {
+        document.getElementById('m-doc-title').textContent = finalName;
+      }
+      mCleanupEdit(optId);
+    }
+
+    function mCancelRename(optId, originalName) {
+      if (mEditingOpt !== optId) return;
+      document.getElementById('m-lbl-' + optId).textContent = originalName;
+      mCleanupEdit(optId);
+    }
+
+    function mCleanupEdit(optId) {
+      if (mEditingOpt !== optId) return;
+      mEditingOpt = null;
+      mHideKeyboard();
+      const row = document.getElementById('m-row-' + optId);
+      const inp = document.getElementById('m-inp-' + optId);
+      const acts = document.getElementById('m-actions-' + optId);
+      if (inp) inp.remove();
+      if (acts) acts.remove();
+      document.getElementById('m-lbl-' + optId).style.display = '';
+      document.getElementById('m-mbtn-' + optId).style.display = '';
+      row.querySelector('.m-drag-handle').style.visibility = '';
+      row.classList.remove('is-editing');
+    }
+
+    // ── Rename (inline edit) ──
+    function startRename(optId) {
+      closeMenu();
+      editingOpt = optId;
+
+      const row = document.getElementById('row-' + optId);
+      const lbl = document.getElementById('lbl-' + optId);
+      const mBtn = document.getElementById('mbtn-' + optId);
+      const drag = row.querySelector('.drag-handle');
+
+      const originalName = lbl.textContent;
+
+      // Enter edit mode
+      row.classList.add('is-editing');
+      drag.style.visibility = 'hidden';
+      lbl.style.display = 'none';
+      mBtn.style.display = 'none';
+
+      // Input
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'opt-edit-input';
+      input.value = originalName;
+      input.maxLength = 100;
+      input.id = 'inp-' + optId;
+
+      // Action buttons
+      const actions = document.createElement('div');
+      actions.className = 'opt-edit-actions';
+      actions.id = 'actions-' + optId;
+      actions.innerHTML = `
+        <button class="opt-edit-btn cancel-btn" id="cbtn-${optId}" title="Cancel (Esc)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <button class="opt-edit-btn confirm-btn" id="cfbtn-${optId}" title="Save (Enter)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+      `;
+
+      row.insertBefore(input, mBtn);
+      row.insertBefore(actions, mBtn);
+
+      // Focus + select all
+      requestAnimationFrame(() => {
+        input.focus();
+        input.select();
+      });
+
+      // Keyboard
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); confirmRename(optId, input.value, originalName); }
+        else if (e.key === 'Escape') { e.preventDefault(); cancelRename(optId, originalName); }
+      });
+
+      // Prevent blur on button mousedown so click fires cleanly
+      const cancelBtn = document.getElementById('cbtn-' + optId);
+      const confirmBtn = document.getElementById('cfbtn-' + optId);
+
+      cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
+      confirmBtn.addEventListener('mousedown', (e) => e.preventDefault());
+
+      cancelBtn.addEventListener('click', (e) => { e.stopPropagation(); cancelRename(optId, originalName); });
+      confirmBtn.addEventListener('click', (e) => { e.stopPropagation(); confirmRename(optId, input.value, originalName); });
+
+      // Blur = cancel
+      input.addEventListener('blur', () => {
+        // If editingOpt is still set (no action button was clicked), cancel
+        requestAnimationFrame(() => {
+          if (editingOpt === optId) cancelRename(optId, originalName);
+        });
+      });
+    }
+
+    function confirmRename(optId, newValue, originalName) {
+      if (editingOpt !== optId) return;
+      const trimmed = newValue.trim();
+      const finalName = trimmed || originalName;
+
+      const lbl = document.getElementById('lbl-' + optId);
+      lbl.textContent = finalName;
+
+      // Sync to document if this option is active
+      if (document.getElementById('row-' + optId).classList.contains('is-active')) {
+        document.getElementById('doc-title').textContent = finalName;
+      }
+
+      cleanupEdit(optId);
+    }
+
+    function cancelRename(optId, originalName) {
+      if (editingOpt !== optId) return;
+      document.getElementById('lbl-' + optId).textContent = originalName;
+      cleanupEdit(optId);
+    }
+
+    function cleanupEdit(optId) {
+      if (editingOpt !== optId) return;
+      editingOpt = null;
+
+      const row = document.getElementById('row-' + optId);
+      const lbl = document.getElementById('lbl-' + optId);
+      const mBtn = document.getElementById('mbtn-' + optId);
+      const drag = row.querySelector('.drag-handle');
+
+      const input = document.getElementById('inp-' + optId);
+      const actions = document.getElementById('actions-' + optId);
+      if (input) input.remove();
+      if (actions) actions.remove();
+
+      lbl.style.display = '';
+      mBtn.style.display = '';
+      drag.style.visibility = '';
+      row.classList.remove('is-editing');
+    }
+  </script>
+</body>
+</html>
