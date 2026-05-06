@@ -356,7 +356,7 @@
       <div class="cover-header">
         <div class="cover-eyebrow">Proposal Editor · UX Exploration</div>
         <div class="cover-title">Add Item to Section</div>
-        <div class="cover-meta">Option C selected &nbsp;·&nbsp; Last audited: April 28, 2026</div>
+        <div class="cover-meta">Option C selected &nbsp;·&nbsp; Last audited: May 6, 2026</div>
       </div>
 
       <div class="cover-body">
@@ -520,9 +520,31 @@
             <div class="needed-row high">
               <div class="needed-check"></div>
               <div>
+                <div class="needed-name">Empty row gate — per-section + button behavior</div>
+                <div class="needed-desc">The existing <code style="font-size:11px;">hasEmptyRow</code> flag blocks all adding when any unsaved row exists anywhere in the table. The per-section + button needs a spec for this: if Section A has an open row and the user clicks + on Section B — do we block silently, show a nudge, or auto-scroll to the open row? Different from the global button because the open row may not be visible.</div>
+                <div class="needed-source">Source: QuoteDetails.tsx:1643 — <code style="font-size:11px;">allowAddItemClick=&#123;!hasEmptyRow && !isLoading&#125;</code></div>
+              </div>
+            </div>
+
+            <div class="needed-row high" style="margin-top: var(--spacing-components-xs);">
+              <div class="needed-check"></div>
+              <div>
                 <div class="needed-name">Picker overflow — many sections</div>
                 <div class="needed-desc">No max-height or scroll on the picker. With 6+ sections it will clip or overflow off the top of the viewport. Proposals with many headings will hit this immediately.</div>
                 <div class="needed-source">Source: option-c.html line 291–305 — no overflow or max-height · Real: HeadingGroup[] has no count limit</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="priority-section" style="margin-bottom: var(--spacing-components-lg);">
+            <div class="priority-label">🟡 Medium priority — should be designed before handoff</div>
+
+            <div class="needed-row medium">
+              <div class="needed-check"></div>
+              <div>
+                <div class="needed-name">Catalog fetch failure mid-add</div>
+                <div class="needed-desc">When adding a catalog item, <code style="font-size:11px;">CatalogItem.find()</code> is called with no try/catch. If the catalog API fails after the user has selected a section and committed the row, the row silently hangs with no feedback. The section context makes this more disorienting than the current behavior — the user has already committed to a destination.</div>
+                <div class="needed-source">Source: QuoteDetails.tsx:943 — no error handling around <code style="font-size:11px;">CatalogItem.find(rowData.uuid, ...)</code></div>
               </div>
             </div>
           </div>
@@ -603,7 +625,7 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             All options
           </a>
-          <div class="audit-date">Audited April 28, 2026</div>
+          <div class="audit-date">Audited May 6, 2026</div>
         </div>
 
       </div>
