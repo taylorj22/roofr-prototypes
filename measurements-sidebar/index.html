@@ -1,0 +1,3079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal — Measurements Sidebar</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+@font-face {
+  font-family: 'Circular Std';
+  src: url('CircularStd-Book.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Circular Std';
+  src: url('CircularStd-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--Sizes-Body);
+  color: var(--text-default);
+  background: var(--background-secondary);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── HEADER ─── */
+.header {
+  height: 52px;
+  background: var(--background-default);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 0;
+  position: fixed;
+  top: 40px; left: 0; right: 0;
+  z-index: 200;
+}
+.header-left {
+  display: flex; align-items: center; gap: 12px;
+  min-width: 0;
+}
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--text-link);
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  background: none; border: none;
+  cursor: pointer; padding: 4px 6px;
+  border-radius: var(--radius-md);
+  transition: background 150ms ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.back-link:hover { background: var(--background-accent-primary); }
+.autosave {
+  display: flex; align-items: center; gap: 5px;
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.header-center {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.header-address {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-highlight);
+}
+.icon-btn {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--icon-icon-muted);
+  border-radius: var(--radius-md);
+  transition: background 150ms ease, color 150ms ease;
+}
+.icon-btn:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+.header-right {
+  display: flex; align-items: center; gap: 8px;
+  min-width: 0;
+}
+.draft-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--components-tag-thumbnail-orange-fill);
+  color: var(--components-tag-thumbnail-orange-text);
+  font-size: var(--Sizes-Smaller);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--background-default); /* default-border: invisible in light mode */
+  white-space: nowrap;
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: inherit; font-weight: 500;
+  cursor: pointer; border-radius: var(--radius-circle);
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.btn-sm { height: 32px; padding: 0 16px; font-size: var(--Sizes-Small); }
+.btn-md { height: 36px; padding: 0 20px; font-size: var(--Sizes-Small); }
+.btn-lg { height: 44px; padding: 0 24px; font-size: var(--Sizes-Body); }
+.btn-primary { background: var(--background-contrast); color: #fff; }
+.btn-primary:hover { background: var(--roofr-blue-5B); }
+.btn-outline { background: var(--background-default); color: var(--text-link); border-color: var(--border-primary); }
+.btn-outline:hover { background: var(--background-accent-primary); }
+.btn-secondary { background: var(--components-button-secondary); color: var(--text-link); }
+.btn-secondary:hover { background: var(--components-button-secondary-hover); }
+.btn-ghost { background: none; color: var(--text-muted); border-color: transparent; font-weight: 400; }
+.btn-ghost:hover { background: var(--background-secondary); color: var(--text-default); }
+.btn-dashed { background: var(--background-default); color: var(--text-link); border: 1px dashed var(--border-primary); border-radius: var(--radius-lg); }
+.btn-dashed:hover { background: var(--background-accent-primary); }
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: flex;
+  height: calc(100vh - 92px);
+  margin-top: 92px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── LEFT PANEL ─── */
+.left-panel {
+  width: 218px;
+  min-width: 218px;
+  background: var(--background-default);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 12px;
+  gap: 20px;
+}
+.left-panel::-webkit-scrollbar { width: 4px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
+
+.lp-section-label {
+  font-size: var(--Sizes-Smaller);
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* Customer card */
+.customer-card {
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+}
+.customer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.customer-name {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-highlight);
+}
+.customer-meta {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.customer-meta-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+}
+.customer-meta-row svg { flex-shrink: 0; color: var(--icon-icon-muted); }
+.add-cosigner-wrap { margin-top: 10px; }
+
+/* Related */
+.related-section-toggle {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; background: none; border: none;
+  padding: 0 0 6px; cursor: pointer;
+  font-family: inherit;
+}
+.related-section-toggle:hover .lp-section-label { color: var(--text-default); }
+.related-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-circle);
+  font-size: var(--Sizes-Smaller);
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.related-chevron {
+  color: var(--icon-icon-muted);
+  transition: transform 200ms ease;
+  margin-left: auto;
+}
+.related-chevron.collapsed { transform: rotate(-90deg); }
+.related-links { display: flex; flex-direction: column; gap: 2px; overflow: hidden; transition: max-height 200ms ease, opacity 200ms ease; max-height: 200px; opacity: 1; }
+.related-links.collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+.related-link {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-link);
+  background: none; border: none;
+  cursor: pointer; padding: 5px 4px;
+  border-radius: var(--radius-md);
+  transition: background 150ms ease;
+  text-align: left;
+  text-decoration: none;
+}
+.related-link:hover { background: var(--background-accent-primary); }
+.related-link svg { flex-shrink: 0; }
+
+/* Proposal sections nav */
+.sections-nav { display: flex; flex-direction: column; gap: 0; }
+.section-nav-item {
+  display: flex; align-items: center;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 150ms ease;
+  user-select: none;
+}
+.section-nav-item:hover { background: var(--background-secondary); }
+.section-nav-item.active { background: var(--background-secondary); }
+.section-color-bar {
+  width: 3px; height: 28px; border-radius: 2px;
+  background: var(--roofr-mist-5B);
+  margin-right: 8px; flex-shrink: 0;
+}
+.section-color-bar.green { background: #28A745; }
+.section-color-bar.blue { background: var(--roofr-blue); }
+.section-nav-label {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-default);
+  flex: 1;
+  padding: 6px 0;
+}
+.section-drag {
+  color: var(--icon-icon-inactive);
+  padding: 0 4px; cursor: grab;
+}
+.section-nav-actions {
+  display: flex; align-items: center; gap: 0; margin-left: auto;
+  opacity: 0; transition: opacity 150ms;
+}
+.section-nav-item:hover .section-nav-actions { opacity: 1; }
+
+/* Sub-sections */
+.sub-sections { padding-left: 11px; }
+.sub-section-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.sub-section-item:hover { background: var(--background-secondary); }
+.sub-section-label {
+  font-size: var(--Sizes-Small);
+  color: var(--text-default);
+  flex: 1;
+}
+.sub-section-item .dots-menu {
+  opacity: 0; transition: opacity 150ms;
+}
+.sub-section-item:hover .dots-menu { opacity: 1; }
+
+.add-section-btn {
+  width: 100%; margin-top: 8px;
+  height: 36px;
+}
+
+/* ─── MAIN CANVAS ─── */
+.main-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: var(--background-secondary);
+  min-width: 0;
+}
+.canvas-inner {
+  max-width: 650px;
+  margin: 0 auto;
+}
+.main-canvas::-webkit-scrollbar { width: 6px; }
+.main-canvas::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+
+/* Option page header (above card) */
+.option-page-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.option-page-name {
+  font-size: var(--Sizes-Body);
+  font-weight: 500;
+  color: var(--text-default);
+}
+.option-page-actions { display: flex; align-items: center; gap: 8px; }
+
+/* In-card title area */
+.option-card-title-area { padding: 20px 20px 14px; }
+.option-card-subtitle { font-size: var(--Sizes-Small); color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+.option-card-green-rule { height: 2px; background: #28A745; }
+
+/* Option card */
+.option-card {
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.option-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  height: 44px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--background-default);
+}
+.option-tab-label {
+  font-size: var(--Sizes-Small);
+  color: var(--text-muted);
+}
+.option-actions { display: flex; align-items: center; gap: 8px; }
+.option-body { padding: 20px; }
+
+/* Progress bar */
+.option-progress {
+  height: 4px;
+  background: var(--border-default);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.option-progress-fill {
+  height: 100%;
+  width: 100%;
+  background: #28A745;
+  border-radius: 2px;
+}
+
+.option-title-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.option-title {
+  font-size: var(--Sizes-H4);
+  font-weight: 500;
+  color: var(--text-highlight);
+}
+.add-summary-link {
+  font-size: var(--Sizes-Small);
+  color: var(--text-link);
+  background: none; border: none;
+  cursor: pointer; padding: 0 20px 16px;
+  display: block;
+  transition: color 150ms;
+}
+.add-summary-link:hover { color: var(--text-link-hover); }
+
+/* Line items table */
+.line-table { width: 100%; }
+.line-table-header {
+  display: grid;
+  grid-template-columns: 1fr 130px 80px 110px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border-default);
+  gap: 12px;
+}
+.line-table-header span {
+  font-size: var(--Sizes-Small);
+  color: var(--text-muted);
+}
+.line-table-header span:not(:first-child) { text-align: right; }
+.line-item {
+  display: grid;
+  grid-template-columns: 1fr 130px 80px 110px;
+  padding: 10px 20px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-default);
+  align-items: start;
+  transition: background 150ms;
+}
+.line-item:hover { background: var(--background-secondary); }
+.line-item-name {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-highlight);
+}
+.line-item-desc {
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.line-item-val {
+  font-size: var(--Sizes-Small);
+  color: var(--text-default);
+  text-align: right;
+}
+.line-item-val.updated {
+  color: var(--text-link);
+  animation: valPop 400ms ease;
+}
+@keyframes valPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.line-item-subtotal {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-highlight);
+  text-align: right;
+}
+
+.line-add-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+.add-row-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: none; border: none; padding: 0;
+  font-family: inherit; font-size: var(--Sizes-Small);
+  font-weight: 500; color: var(--text-link);
+  cursor: pointer; transition: color 150ms;
+}
+.add-row-btn:hover { color: var(--text-link-hover); }
+.add-row-btn svg { color: var(--text-link); }
+
+.estimate-subtotal {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px;
+  font-size: var(--Sizes-Body);
+  font-weight: 500;
+  color: var(--text-highlight);
+  border-top: 1px solid var(--border-default);
+}
+
+/* Proposal preview footer */
+.proposal-preview-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-default);
+  display: flex; justify-content: space-between; align-items: flex-end;
+  background: var(--background-tertiary);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.footer-contact {
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.footer-logo {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-circle);
+  background: var(--background-secondary);
+  border: 1px solid var(--border-default);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Zoom bar */
+.zoom-bar {
+  position: fixed; bottom: 16px; right: 96px;
+  display: flex; align-items: center; gap: 0;
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-circle);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.zoom-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--icon-icon-muted);
+  transition: background 150ms;
+}
+.zoom-btn:hover { background: var(--background-secondary); }
+.zoom-val {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-default);
+  padding: 0 4px;
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer; border-left: 1px solid var(--border-default); border-right: 1px solid var(--border-default);
+  height: 32px;
+}
+
+/* ─── RIGHT ICON RAIL ─── */
+.right-rail {
+  width: 72px;
+  min-width: 72px;
+  /* small floating panel — centered vertically */
+  align-self: center;
+  margin: 0 8px 0 0;
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0;
+  gap: 0;
+  z-index: 10;
+}
+.rail-item {
+  width: 56px;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 4px;
+  gap: 4px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: none; border: none;
+  font-family: inherit;
+  transition: background 150ms ease;
+  position: relative;
+}
+.rail-item:hover { background: var(--background-secondary); }
+.rail-item.active { background: var(--background-accent-primary); }
+.rail-item-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--icon-icon-muted);
+  transition: color 150ms;
+}
+.rail-item.active .rail-item-icon { color: var(--icon-primary); }
+.measure-icon-active { display: none; }
+.rail-item.has-measurements .measure-icon-default { display: none; }
+.rail-item.has-measurements .measure-icon-active { display: block; }
+.rail-item:hover .rail-item-icon { color: var(--icon-icon-default); }
+.rail-item-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.3;
+  transition: color 150ms;
+}
+.rail-item.active .rail-item-label { color: var(--text-link); }
+.rail-item:hover .rail-item-label { color: var(--text-default); }
+
+/* ─── RIGHT PANEL (slides in) ─── */
+.right-panel {
+  position: fixed;
+  top: 92px; right: 88px; bottom: 0;
+  width: 300px;
+  background: var(--background-default);
+  border-left: 1px solid var(--border-default);
+  transform: translateX(100%);
+  transition: transform 200ms ease, opacity 200ms ease;
+  opacity: 0;
+  pointer-events: none;
+  display: flex; flex-direction: column;
+  z-index: 9;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.06);
+}
+.right-panel.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: all;
+}
+.right-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 13px;
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+.right-panel-title {
+  font-size: var(--Sizes-Small);
+  font-weight: 500;
+  color: var(--text-highlight);
+}
+.right-panel-close {
+  width: 24px; height: 24px;
+  background: none; border: none; cursor: pointer;
+  color: var(--icon-icon-muted);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background 150ms, color 150ms;
+}
+.right-panel-close:hover { background: var(--background-secondary); color: var(--icon-icon-default); }
+.right-panel-content { flex: 1; overflow-y: auto; }
+.right-panel-content::-webkit-scrollbar { width: 4px; }
+.right-panel-content::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
+
+/* ─── MEASUREMENTS CONTENT ─── */
+
+/* Inline hint */
+.meas-hint {
+  margin: 12px 14px 0;
+  background: var(--components-hint-toast-banner-primary-fill);
+  border: 1px solid var(--components-hint-toast-banner-primary-outline);
+  border-radius: var(--radius-lg);
+  padding: 9px 11px;
+  display: flex; align-items: flex-start; gap: 7px;
+  animation: hintIn 250ms ease;
+}
+@keyframes hintIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.meas-hint-icon { color: var(--components-hint-toast-banner-primary-icon); flex-shrink: 0; margin-top: 1px; }
+.meas-hint-body { flex: 1; }
+.meas-hint-title { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); margin-bottom: 1px; }
+.meas-hint-text { font-size: var(--Sizes-Smaller); color: var(--text-muted); line-height: 150%; }
+.meas-hint-close { background: none; border: none; cursor: pointer; color: var(--icon-icon-muted); padding: 0; flex-shrink: 0; transition: color 150ms; }
+.meas-hint-close:hover { color: var(--text-default); }
+
+/* Source row */
+.meas-source-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 9px;
+  border-bottom: 1px solid var(--border-default);
+}
+.meas-source-meta { display: flex; flex-direction: column; gap: 1px; }
+.meas-source-label { font-size: var(--Sizes-Smaller); color: var(--text-muted); font-weight: 400; }
+.source-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--Sizes-Smaller); font-weight: 500;
+  padding: 2px 7px; border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+.source-badge.report { background: var(--components-tag-thumbnail-blue-fill); color: var(--components-tag-thumbnail-blue-text); }
+.source-badge.diy { background: var(--components-tag-thumbnail-muted-fill); color: var(--components-tag-thumbnail-muted-text); border-color: var(--border-default); }
+.source-badge.manual { background: var(--background-secondary); color: var(--text-muted); border-color: var(--border-default); }
+
+/* Version selector */
+.version-wrap { padding: 10px 14px; border-bottom: 1px solid var(--border-default); position: relative; }
+.version-label { font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-muted); margin-bottom: 5px; }
+.version-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--components-input-background-default);
+  border: 1px solid var(--components-input-border-default);
+  border-radius: var(--components-input-radius);
+  cursor: pointer; transition: border-color 150ms;
+  font-family: inherit; gap: 8px;
+}
+.version-btn:hover { border-color: var(--components-input-border-hover); }
+.version-btn.open { border-color: var(--components-input-border-active); box-shadow: 0 0 0 2px var(--roofr-blue-50); }
+.version-btn-text { display: flex; flex-direction: column; align-items: flex-start; }
+.version-name { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.version-date { font-size: var(--Sizes-Smaller); color: var(--text-muted); }
+.version-chevron { color: var(--icon-icon-muted); transition: transform 200ms ease; flex-shrink: 0; }
+.version-chevron.open { transform: rotate(180deg); }
+.version-dropdown {
+  position: absolute; left: 14px; right: 14px; top: calc(100% - 4px);
+  background: #fff; border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  z-index: 50; overflow: hidden;
+  animation: dropIn 150ms ease-out;
+}
+@keyframes dropIn { from { opacity: 0; transform: scaleY(0.95); transform-origin: top; } to { opacity: 1; transform: scaleY(1); } }
+.version-option {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; cursor: pointer; transition: background 150ms; gap: 8px;
+}
+.version-option:hover { background: var(--background-secondary); }
+.version-option.selected { background: var(--background-accent-primary); }
+.version-option-text { display: flex; flex-direction: column; gap: 1px; }
+.version-option-name { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.version-option-sub { font-size: var(--Sizes-Smaller); color: var(--text-muted); }
+.version-option-check { color: var(--icon-primary); flex-shrink: 0; opacity: 0; }
+.version-option.selected .version-option-check { opacity: 1; }
+.view-report-link {
+  margin-top: 7px; display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-link);
+  background: none; border: none; cursor: pointer; padding: 0;
+  transition: color 150ms; text-decoration: none;
+}
+.view-report-link:hover { color: var(--text-link-hover); text-decoration: underline; }
+
+/* Measurement table */
+.meas-section-wrap { padding: 10px 14px 4px; }
+.meas-section-title { font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.meas-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--border-default); }
+.meas-row:last-child { border-bottom: none; }
+.meas-row-label { font-size: var(--Sizes-Small); color: var(--text-muted); }
+.meas-row-value { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+
+/* Waste table */
+.waste-section { display: none; }
+.waste-title { font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.waste-grid { border: 1px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; font-size: 10px; }
+.waste-grid-header, .waste-grid-row { display: grid; grid-template-columns: 52px repeat(7, 1fr); }
+.waste-grid-header { background: var(--background-secondary); border-bottom: 1px solid var(--border-default); }
+.waste-grid-row { border-bottom: 1px solid var(--border-default); }
+.waste-grid-row:last-child { border-bottom: none; }
+.wc { padding: 4px 3px; text-align: center; border-right: 1px solid var(--border-default); color: var(--text-default); white-space: nowrap; }
+.wc:last-child { border-right: none; }
+.wc.lbl { text-align: left; padding-left: 6px; color: var(--text-muted); font-weight: 500; }
+.wc.hdr { font-weight: 500; color: var(--text-muted); }
+.wc.rec { background: var(--background-accent-primary); color: var(--text-link); font-weight: 500; }
+.wc.rec-hdr { background: var(--background-accent-primary); color: var(--text-link); font-weight: 500; border-bottom: 2px solid var(--border-primary); }
+
+/* Edit values row */
+.meas-edit-row { padding: 10px 14px 14px; border-top: 1px solid var(--border-default); margin-top: 6px; }
+.btn-link { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; font-family: inherit; font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-link); cursor: pointer; padding: 0; transition: color 150ms; }
+.btn-link:hover { color: var(--text-link-hover); text-decoration: underline; }
+
+/* Edit form */
+.edit-header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
+.edit-back { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; font-family: inherit; font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-link); cursor: pointer; transition: color 150ms; padding: 0; }
+.edit-back:hover { color: var(--text-link-hover); }
+.edit-title { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); flex: 1; }
+.form-group { border-bottom: 1px solid var(--border-default); }
+.form-group-lbl { padding: 8px 14px 6px; font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; background: var(--background-tertiary); border-bottom: 1px solid var(--border-default); }
+.form-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; gap: 12px; border-bottom: 1px solid var(--border-default); }
+.form-row:last-child { border-bottom: none; }
+.form-row-lbl { font-size: var(--Sizes-Small); color: var(--text-default); }
+.form-input {
+  width: 86px; height: 30px; padding: 0 8px;
+  border: 1px solid var(--components-input-border-default);
+  border-radius: var(--components-input-radius);
+  font-family: inherit; font-size: var(--Sizes-Small);
+  color: var(--components-input-content-default);
+  background: var(--components-input-background-default);
+  text-align: right; outline: none;
+  transition: border-color 150ms, background 150ms;
+}
+.form-input:hover { border-color: var(--components-input-border-hover); }
+.form-input:focus { border-color: var(--components-input-border-active); box-shadow: 0 0 0 2px var(--roofr-blue-50); }
+.form-input:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-highlight);
+  font-weight: 500;
+  -webkit-text-fill-color: var(--text-highlight);
+  opacity: 1;
+  cursor: default;
+  pointer-events: none;
+}
+.meas-form-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px 7px;
+  background: var(--background-tertiary);
+  border-bottom: 1px solid var(--border-default);
+  border-top: 1px solid var(--border-default);
+}
+.meas-form-hd-label {
+  font-size: var(--Sizes-Smaller); font-weight: 500;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.meas-form-hd-actions { display: flex; gap: 6px; align-items: center; }
+.meas-form-footer { padding: 10px 14px 14px; border-top: 1px solid var(--border-default); display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+
+/* Empty state — no reports (State B) */
+.empty-state { display: flex; flex-direction: column; align-items: center; padding: 36px 20px; text-align: center; gap: 10px; }
+.empty-icon { width: 44px; height: 44px; background: var(--background-secondary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--icon-icon-muted); }
+.empty-title { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.empty-body { font-size: var(--Sizes-Small); color: var(--text-muted); line-height: 150%; max-width: 220px; }
+.empty-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 6px; }
+
+/* Empty state — reports available (State A) */
+.rpt-select-wrap { display: flex; flex-direction: column; height: 100%; }
+.rpt-select-intro { padding: 14px 16px 10px; border-bottom: 1px solid var(--border-default); }
+.rpt-select-intro-title { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); margin-bottom: 3px; }
+.rpt-select-intro-body { font-size: var(--Sizes-Smaller); color: var(--text-muted); line-height: 1.5; }
+.rpt-list { flex: 1; overflow-y: auto; padding: 12px 12px 0; display: flex; flex-direction: column; gap: 8px; }
+.rpt-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 12px;
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+  background: var(--background-default);
+  position: relative;
+}
+.rpt-card:hover { border-color: var(--border-primary-subtle); background: var(--background-accent-primary); }
+.rpt-card.selected { border-color: var(--border-primary); background: var(--background-accent-primary); }
+.rpt-card-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.rpt-card-icon.report { background: var(--roofr-blue-10); color: var(--icon-primary); }
+.rpt-card-icon.diy { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.rpt-card-body { flex: 1; min-width: 0; }
+.rpt-card-hd { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.rpt-card-name { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.rpt-ready { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: var(--radius-circle); background: var(--components-tag-thumbnail-green-fill); color: var(--components-tag-thumbnail-green-text); flex-shrink: 0; }
+.rpt-card-stats { font-size: var(--Sizes-Smaller); color: var(--text-default); font-weight: 500; }
+.rpt-card-date { font-size: var(--Sizes-Smaller); color: var(--text-muted); margin-top: 1px; }
+.rpt-card-check { flex-shrink: 0; color: var(--icon-primary); opacity: 0; transition: opacity 120ms; margin-top: 2px; }
+.rpt-card.selected .rpt-card-check { opacity: 1; }
+.rpt-select-footer { padding: 12px 12px 16px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border-default); margin-top: 12px; }
+.rpt-attach-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+
+/* ─── MODAL ─── */
+.overlay { position: fixed; inset: 0; background: var(--background-overlay); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 150ms ease; }
+.overlay.visible { opacity: 1; pointer-events: all; }
+.modal { background: var(--components-card-default-fill); border-radius: var(--radius-xl); box-shadow: 0 4px 36px rgba(0,0,0,0.12); width: 420px; max-width: calc(100vw - 40px); overflow: hidden; transform: translateY(8px) scale(0.98); transition: transform 150ms ease, opacity 150ms ease; opacity: 0; }
+.overlay.visible .modal { transform: translateY(0) scale(1); opacity: 1; }
+.modal-hd { padding: 24px 28px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.modal-title { font-size: var(--Sizes-H4); font-weight: 500; color: var(--text-highlight); line-height: 120%; }
+.modal-close-btn { width: 28px; height: 28px; background: var(--components-button-secondary); border: none; border-radius: var(--radius-circle); cursor: pointer; color: var(--icon-icon-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 150ms; }
+.modal-close-btn:hover { background: var(--components-button-secondary-hover); }
+.modal-divider { height: 1px; background: var(--border-default); margin: 18px 0; }
+.modal-bd { padding: 0 28px; }
+.modal-text { font-size: var(--Sizes-Small); color: var(--text-default); line-height: 150%; }
+.modal-detail { margin-top: 10px; padding: 10px 12px; background: var(--background-secondary); border-radius: var(--radius-md); font-size: var(--Sizes-Small); color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.modal-ft { padding: 18px 28px 22px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-default); margin-top: 18px; }
+.btn-link-muted { color: var(--text-muted); font-weight: 400; }
+.btn-link-muted:hover { color: var(--text-default); }
+
+/* Report picker */
+.report-opt { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-lg); margin-bottom: 8px; cursor: pointer; transition: all 150ms; }
+.report-opt:hover { border-color: var(--border-primary); background: var(--background-accent-primary); }
+.report-opt.selected { border-color: var(--border-primary); background: var(--background-accent-primary); }
+.report-opt-icon { width: 34px; height: 34px; border-radius: var(--radius-md); background: var(--roofr-blue-10); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--icon-primary); }
+.report-opt-name { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.report-opt-meta { font-size: var(--Sizes-Smaller); color: var(--text-muted); }
+.report-opt-check { margin-left: auto; color: var(--icon-primary); opacity: 0; transition: opacity 150ms; flex-shrink: 0; }
+.report-opt.selected .report-opt-check { opacity: 1; }
+
+/* ─── STATE BAR ─── */
+.state-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  background: #1a1f23;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  z-index: 300;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.state-bar::-webkit-scrollbar { display: none; }
+.state-bar-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.state-btn {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 120ms ease;
+  line-height: 1;
+}
+.state-btn:hover { background: rgba(255,255,255,0.12); color: #e5e7eb; }
+.state-btn.active { background: #1373e3; border-color: #1373e3; color: #fff; }
+
+/* ─── STATE CONTEXT ─── */
+.state-context {
+  margin: 0 16px 12px;
+  padding: 9px 11px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.state-context-icon { color: var(--icon-icon-muted); flex-shrink: 0; margin-top: 1px; }
+.state-context p {
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ─── SWITCH REPORT ROW ─── */
+.switch-report-row {
+  padding: 0 16px 12px;
+}
+
+/* ─── SOURCE SECTION ─── */
+.src-section { padding: 12px 16px 10px; border-bottom: 1px solid var(--border-default); }
+.src-section-label { font-size: var(--Sizes-Smaller); font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.src-static { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.src-static-icon { width: 28px; height: 28px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.src-static-icon.report { background: var(--roofr-blue-10); color: var(--icon-primary); }
+.src-static-icon.diy { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-static-icon.manual { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-static-name { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+
+/* Source dropdown button */
+.src-dropdown-wrap { position: relative; }
+.src-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; gap: 8px;
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer; text-align: left;
+  transition: border-color 150ms, background 150ms;
+  font-family: inherit;
+}
+.src-btn:hover { border-color: var(--border-primary-subtle); background: var(--background-accent-primary); }
+.src-btn.open { border-color: var(--border-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.src-btn:disabled { background: var(--background-secondary); cursor: default; pointer-events: none; color: var(--text-muted); }
+.src-btn-inner { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.src-btn-icon { width: 26px; height: 26px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.src-btn-icon.report { background: var(--roofr-blue-10); color: var(--icon-primary); }
+.src-btn-icon.diy { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-btn-icon.manual { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-btn-text { min-width: 0; }
+.src-btn-name { display: block; font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.src-btn-meta { display: block; font-size: var(--Sizes-Smaller); color: var(--text-muted); white-space: nowrap; }
+.src-chevron { flex-shrink: 0; color: var(--icon-icon-muted); transition: transform 200ms ease; }
+.src-chevron.open { transform: rotate(180deg); }
+
+/* Source dropdown list */
+.src-dropdown-list {
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: var(--background-default);
+  border: 1px solid var(--border-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 20;
+  overflow: hidden;
+}
+.src-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; cursor: pointer;
+  transition: background 120ms;
+  border-bottom: 1px solid var(--border-default);
+}
+.src-option:last-child { border-bottom: none; }
+.src-option:hover { background: var(--background-accent-primary); }
+.src-option.selected { background: var(--background-accent-primary); }
+.src-option-icon { width: 26px; height: 26px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.src-option-icon.report { background: var(--roofr-blue-10); color: var(--icon-primary); }
+.src-option-icon.diy { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-option-icon.manual { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-option-icon.add-manual { background: var(--background-secondary); color: var(--icon-icon-muted); }
+.src-option-body { flex: 1; min-width: 0; }
+.src-option-name { display: block; font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.src-option-meta { display: block; font-size: var(--Sizes-Smaller); color: var(--text-muted); }
+.src-option-ext { color: var(--icon-primary); flex-shrink: 0; display: flex; align-items: center; opacity: 0.7; }
+.src-option:hover .src-option-ext { opacity: 1; }
+.src-option-check { flex-shrink: 0; color: var(--icon-primary); opacity: 0; }
+.src-option.selected .src-option-check { opacity: 1; }
+.src-divider { height: 1px; background: var(--border-default); margin: 2px 0; }
+
+/* Edit mode panel header */
+.rp-edit-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 10px 16px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--background-secondary);
+  flex-shrink: 0;
+}
+.rp-edit-title { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.rp-edit-actions { display: flex; gap: 6px; align-items: center; }
+
+/* ─── TOAST (design system spec) ─── */
+.page-toast {
+  position: fixed;
+  top: 104px; /* below state bar + header + 12px */
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  width: 306px;
+  background: var(--components-hint-toast-banner-success-fill);
+  border: 1px solid var(--components-hint-toast-banner-success-outline);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 16px;
+  z-index: 500;
+  opacity: 0; pointer-events: none;
+  transition: transform 150ms ease-out, opacity 150ms ease-out;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+}
+.page-toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1; pointer-events: all;
+}
+.page-toast-icon { flex-shrink: 0; color: var(--components-hint-toast-banner-success-icon); }
+.page-toast-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.page-toast-title { font-size: var(--Sizes-Body); font-weight: 500; line-height: 1.5; color: var(--components-hint-toast-banner-primary-title); }
+.page-toast-sub { font-size: var(--Sizes-Small); font-weight: 400; line-height: 1.5; color: var(--components-hint-toast-banner-muted-body); }
+.page-toast-close { flex-shrink: 0; background: none; border: none; cursor: pointer; color: var(--components-hint-toast-banner-success-icon); display: flex; align-items: center; justify-content: center; padding: 0; width: 24px; height: 24px; }
+.page-toast-close:hover { opacity: 0.7; }
+
+/* Danger button */
+.btn-danger { background: var(--background-accent-danger); color: var(--text-danger); border-color: var(--border-danger); }
+.btn-danger:hover { background: var(--roofr-red-30); }
+
+.hidden { display: none !important; }
+
+svg { display: block; }
+
+/* ─── LINE ITEM SECTION HEADING ─── */
+.line-section-heading {
+  padding: 7px 20px 6px;
+  font-size: var(--Sizes-Smaller);
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--background-tertiary);
+  border-top: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+}
+
+/* ─── ESTIMATE TOTAL SECTION ─── */
+.est-total-section {
+  border-top: 1px solid var(--border-default);
+  padding: 16px 20px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.est-total-intro { flex: 1; }
+.est-total-intro-label { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); margin-bottom: 2px; }
+.est-total-intro-sub { font-size: var(--Sizes-Smaller); color: var(--text-muted); line-height: 1.4; max-width: 140px; }
+.est-total-right { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+.est-total-row {
+  display: flex; align-items: center; gap: 16px;
+  font-size: var(--Sizes-Small);
+  color: var(--text-default);
+}
+.est-total-row.final {
+  font-weight: 600; color: var(--text-highlight);
+  font-size: var(--Sizes-Body); margin-top: 4px;
+}
+
+/* ─── SECTION NAV ACTIVE SUB ITEM ─── */
+.sub-section-item.active { background: var(--background-accent-primary); }
+
+/* ─── MODAL DETAIL v2 ─── */
+.modal-detail-v2 {
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-md);
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.modal-detail-v2-icon {
+  width: 32px; height: 32px; border-radius: var(--radius-md);
+  background: var(--roofr-blue-10); color: var(--icon-primary);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.modal-detail-v2-icon.diy { background: var(--background-default); color: var(--icon-icon-muted); border: 1px solid var(--border-default); }
+.modal-detail-v2-body { flex: 1; min-width: 0; }
+.modal-detail-v2-name { font-size: var(--Sizes-Small); font-weight: 500; color: var(--text-highlight); }
+.modal-detail-v2-meta { font-size: var(--Sizes-Smaller); color: var(--text-muted); margin-top: 1px; }
+
+/* ─── LEFT PANEL v2 ─── */
+.left-panel { width: 248px; min-width: 248px; padding: 14px 12px; gap: 14px; }
+
+/* Customer card v2 */
+.lp-section-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-bottom: 6px; padding: 0 2px;
+}
+.lp-person-card {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--background-default);
+  overflow: hidden;
+}
+.lp-person-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 10px 12px; gap: 8px; cursor: pointer;
+}
+.lp-person-row:hover { background: var(--background-secondary); }
+.lp-person-name { font-size: var(--Sizes-Body); font-weight: 600; color: var(--text-highlight); line-height: 1.3; }
+.lp-person-email { font-size: var(--Sizes-Small); color: var(--text-muted); margin-top: 1px; }
+.lp-person-menu { color: var(--icon-icon-muted); flex-shrink: 0; background: none; border: none; cursor: pointer; padding: 2px; display: flex; align-items: center; }
+.lp-person-menu:hover { color: var(--icon-icon-default); }
+.lp-add-cosigner {
+  width: 100%; margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  font-family: inherit; font-size: var(--Sizes-Small); font-weight: 500;
+  color: var(--text-default); cursor: pointer; text-align: center;
+  transition: background 150ms;
+}
+.lp-add-cosigner:hover { background: var(--background-secondary); }
+
+.lp-related-card {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--background-default);
+  overflow: hidden;
+}
+.lp-related-header {
+  display: flex; align-items: center;
+  padding: 12px 14px; gap: 8px; cursor: pointer;
+}
+.lp-related-header:hover { background: var(--background-secondary); }
+.lp-related-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.07em; flex: 1;
+}
+.lp-related-links { padding: 0 14px 12px; }
+
+.lp-sections-hd {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-bottom: 8px; padding: 0 2px;
+}
+
+.sec-item {
+  display: flex; align-items: center;
+  background: var(--background-secondary);
+  border-radius: var(--radius-md);
+  min-height: 48px;
+  border-left: 4px solid var(--roofr-mist-5B);
+  padding: 0 10px 0 8px;
+  gap: 6px; cursor: pointer; transition: background 150ms;
+  margin-bottom: 4px; user-select: none;
+}
+.sec-item:hover { background: var(--background-tertiary); }
+.sec-item-label { font-size: 15px; font-weight: 500; color: var(--text-default); flex: 1; }
+.sec-item-actions { display: flex; align-items: center; gap: 2px; opacity: 0; transition: opacity 150ms; }
+.sec-item:hover .sec-item-actions { opacity: 1; }
+
+.sec-group {
+  border-left: 4px solid var(--roofr-mist-5B);
+  border-radius: var(--radius-md);
+  background: var(--background-secondary);
+  overflow: hidden; margin-bottom: 4px;
+}
+.sec-group.active { border-left-color: var(--roofr-blue); }
+.sec-group-hd {
+  display: flex; align-items: center;
+  min-height: 48px; padding: 0 10px 0 8px; gap: 6px; cursor: pointer;
+}
+.sec-group-hd .sec-item-label { font-size: 15px; font-weight: 500; flex: 1; }
+.sec-group-hd .sec-item-actions { display: flex; align-items: center; gap: 2px; opacity: 1; }
+.sec-sub-item {
+  display: flex; align-items: center;
+  min-height: 36px; padding: 0 8px 0 4px; gap: 5px;
+  cursor: pointer; transition: background 120ms;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+.sec-sub-item:hover { background: rgba(0,0,0,0.03); }
+.sec-sub-label { font-size: var(--Sizes-Small); color: var(--text-default); flex: 1; }
+.sec-sub-item.active .sec-sub-label { color: var(--text-link); font-weight: 500; }
+.sec-sub-item .dots-menu { opacity: 0; transition: opacity 120ms; }
+.sec-sub-item:hover .dots-menu { opacity: 1; }
+.lp-drag { color: var(--icon-icon-inactive); flex-shrink: 0; }
+
+/* ─── STATE A REPORT CARD ─── */
+.rpt-card-v2 {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px;
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--background-default);
+  transition: border-color 150ms, background 150ms;
+}
+.rpt-card-v2:hover { border-color: var(--border-primary-subtle); background: var(--background-accent-primary); }
+
+/* ─── COVER PAGE ─── */
+.cover-view {
+  position: fixed;
+  top: 40px; left: 0; right: 0; bottom: 0;
+  background: var(--background-secondary);
+  z-index: 250;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding: 36px 24px 60px;
+}
+.cover-view.hidden { display: none; }
+.cover-inner {
+  width: 100%; max-width: 580px;
+}
+.cover-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--background-accent-primary);
+  color: var(--text-link);
+  font-size: var(--Sizes-Smaller);
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: var(--radius-circle);
+  margin-bottom: 14px;
+  border: 1px solid var(--border-primary);
+}
+.cover-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-highlight);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.cover-meta {
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+.cover-card {
+  background: var(--background-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  margin-bottom: 12px;
+}
+.cover-section-label {
+  font-size: var(--Sizes-Smaller);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.cover-problem {
+  font-size: var(--Sizes-Body);
+  color: var(--text-default);
+  line-height: 1.65;
+}
+.cover-state-list {
+  display: flex; flex-direction: column; gap: 0;
+}
+.cover-state-item {
+  display: flex; align-items: baseline; gap: 10px;
+  font-size: var(--Sizes-Small);
+  line-height: 1.5;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-default);
+}
+.cover-state-item:last-child { border-bottom: none; }
+.cover-state-icon { flex-shrink: 0; font-size: 13px; }
+.cover-state-name { font-weight: 500; color: var(--text-highlight); }
+.cover-state-sep { color: var(--text-inactive); margin: 0 2px; }
+.cover-state-desc { color: var(--text-muted); }
+.cover-missing-list { display: flex; flex-direction: column; gap: 0; }
+.cover-missing-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: var(--Sizes-Small);
+  line-height: 1.5;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-default);
+}
+.cover-missing-item:last-child { border-bottom: none; }
+.cover-missing-priority { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+.cover-missing-body { flex: 1; }
+.cover-missing-name { font-weight: 500; color: var(--text-highlight); }
+.cover-missing-desc { color: var(--text-muted); margin-top: 2px; }
+.cover-sources {
+  font-size: var(--Sizes-Smaller);
+  color: var(--text-muted);
+  line-height: 1.8;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cover-source-row { display: flex; gap: 8px; }
+.cover-source-lbl { font-weight: 500; color: var(--text-default); min-width: 52px; flex-shrink: 0; }
+.state-btn-cover {
+  margin-right: 6px;
+  padding-right: 10px;
+  border-right: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* ─── COVER: DECISION LOG ─── */
+.cover-decision-label {
+  font-size: var(--Sizes-Smaller);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-link);
+  margin-bottom: 10px;
+}
+.cover-decision-list { display: flex; flex-direction: column; gap: 6px; }
+.cover-decision-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--background-accent-primary);
+  border: 1px solid var(--border-primary-subtle);
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  font-size: var(--Sizes-Small);
+  line-height: 1.5;
+}
+.cover-decision-icon { flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+.cover-decision-body { flex: 1; }
+.cover-decision-name { font-weight: 500; color: var(--text-highlight); }
+.cover-decision-desc { color: var(--text-muted); margin-top: 2px; }
+
+/* ─── SKELETON LOADER ─── */
+.skeleton-block {
+  background: linear-gradient(90deg,
+    var(--components-skeleton-gradient-start, #f4f5f5) 0%,
+    var(--components-skeleton-gradient-end, #e1e4e6) 50%,
+    var(--components-skeleton-gradient-start, #f4f5f5) 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  flex-shrink: 0;
+}
+@keyframes skeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── IN-PROGRESS REPORT CARD ─── */
+.rpt-processing {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--components-tag-thumbnail-orange-fill);
+  color: var(--components-tag-thumbnail-orange-text);
+  font-size: var(--Sizes-Smaller);
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.rpt-card-v2.processing {
+  cursor: default;
+}
+.rpt-card-v2.processing:hover {
+  border-color: var(--border-default);
+  background: var(--background-default);
+}
+.rpt-card-v2.processing .rpt-card-name,
+.rpt-card-v2.processing .rpt-card-stats { color: var(--text-muted); }
+
+/* ─── ERROR TOAST ─── */
+.error-toast {
+  position: fixed;
+  bottom: 56px; left: 50%; transform: translateX(-50%);
+  background: var(--components-hint-toast-banner-error-fill, #fdf5f6);
+  border: 1px solid var(--components-hint-toast-banner-error-outline, #f5c2c7);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 16px;
+  min-width: 340px; max-width: 480px;
+  z-index: 500;
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.error-toast.visible { opacity: 1; pointer-events: all; }
+.error-toast-icon { flex-shrink: 0; color: #dc3545; }
+.error-toast-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.error-toast-title { font-size: var(--Sizes-Body); font-weight: 500; color: var(--text-highlight); line-height: 1.5; }
+.error-toast-sub { font-size: var(--Sizes-Small); color: var(--text-muted); line-height: 1.5; }
+.error-toast-close { flex-shrink: 0; background: none; border: none; cursor: pointer; color: #dc3545; display: flex; align-items: center; justify-content: center; padding: 0; width: 24px; height: 24px; }
+.error-toast-close:hover { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<!-- ─── PROTOTYPE STATE BAR ─── -->
+<div class="state-bar" id="state-bar">
+  <span class="state-bar-label">State</span>
+  <button class="state-btn state-btn-cover" id="state-btn-cover" onclick="showCover()">Cover</button>
+  <button class="state-btn" id="state-btn-Loading" onclick="applyState('Loading')">Loading</button>
+  <button class="state-btn" id="state-btn-A" onclick="applyState('A')">A · No measure, reports exist</button>
+  <button class="state-btn" id="state-btn-A2" onclick="applyState('A2')">A2 · Reports, one processing</button>
+  <button class="state-btn" id="state-btn-B" onclick="applyState('B')">B · No measure, no reports</button>
+  <button class="state-btn" id="state-btn-C" onclick="applyState('C')">C · Report, one version</button>
+  <button class="state-btn active" id="state-btn-D" onclick="applyState('D')">D · Report, multi-version</button>
+  <button class="state-btn" id="state-btn-E" onclick="applyState('E')">E · DIY, multi-version</button>
+  <button class="state-btn" id="state-btn-F" onclick="applyState('F')">F · Manual + reports exist</button>
+  <button class="state-btn" id="state-btn-G" onclick="applyState('G')">G · Manual, no reports</button>
+  <button class="state-btn" id="state-btn-H" onclick="applyState('H')">H · Save error</button>
+  <button class="state-btn" id="state-btn-I" onclick="applyState('I')">I · Locked / read-only</button>
+</div>
+
+<!-- ─── COVER PAGE ─── -->
+<div id="cover-view" class="cover-view hidden">
+  <div class="cover-inner">
+
+    <div class="cover-chip">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8H6M4 12H7M4 16H6M8 4V6M12 4V7M16 4V6M5 4H19C19.2652 4 19.5196 4.10536 19.7071 4.29289C19.8946 4.48043 20 4.73478 20 5V10C20 10.2652 19.8946 10.5196 19.7071 10.7071C19.5196 10.8946 19.2652 11 19 11H12C11.7348 11 11.4804 11.1054 11.2929 11.2929C11.1054 11.4804 11 11.7348 11 12V19C11 19.2652 10.8946 19.5196 10.7071 19.7071C10.5196 19.8946 10.2652 20 10 20H5C4.73478 20 4.48043 19.8946 4.29289 19.7071C4.10536 19.5196 4 19.2652 4 19V5C4 4.73478 4.10536 4.48043 4.29289 4.29289C4.48043 4.10536 4.73478 4 5 4Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Prototype
+    </div>
+    <div class="cover-title">Measurements Sidebar</div>
+    <div class="cover-meta">Last audited: May 6, 2026</div>
+
+    <!-- Problem -->
+    <div class="cover-card">
+      <div class="cover-section-label">Problem</div>
+      <div class="cover-problem">Once a proposal is created, there's no way to add, swap, or edit the measurement data behind it. Contractors who start without a report, receive a corrected version, or need to override a specific value have no path — they either start a new proposal or live with the wrong numbers.</div>
+    </div>
+
+    <!-- States in prototype -->
+    <div class="cover-card">
+      <div class="cover-section-label">States in this prototype</div>
+      <div class="cover-state-list">
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">A — No measurement, reports available</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Empty state with inline report picker (radio select) and manual entry CTA</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">B — No measurement, no reports</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Empty state with single "Add manual measurements" CTA only</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">C — Report connected, one version</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Summary view, source shown read-only (no dropdown chevron)</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">D — Report connected, multiple versions</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Summary view with source dropdown listing all Roofr + DIY versions</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">E — DIY report active, multiple versions</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Same as D, DIY is active in the source dropdown</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">F — Manual active, reports available</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Summary view, manual badge, dropdown includes available reports to switch back</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">G — Manual active, no reports</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Summary view, static "Manual measurements" label, no dropdown</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">Version switch confirmation</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Modal fires before any recalculation; quantities flash-update on confirm</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">Edit mode</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Inline form with locked/unlocked inputs, header swaps to editing controls</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">Unsaved edits guard</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Discard changes overlay when closing the panel during an active edit</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">Post-update toast</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Page-level toast confirms recalculation after any source change or manual save</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">Rail icon badge</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Ruler icon gains a green check when measurements are attached</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">Loading</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Skeleton loader — 4 blocks while the panel fetches measurement state</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">A2 — Reports, one processing</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">State A picker with an "In progress" card (orange badge, clock icon, not selectable)</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">H — Save / switch failure</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Error toast: "Proposal was not updated — Please try again or contact support"</span></div>
+        </div>
+        <div class="cover-state-item">
+          <span class="cover-state-icon">✅</span>
+          <div><span class="cover-state-name">I — Locked / read-only</span><span class="cover-state-sep"> · </span><span class="cover-state-desc">Sent/locked proposal — disabled source dropdown, no Edit button, view-only measurements</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision log -->
+    <div class="cover-card">
+      <div class="cover-decision-label">Decision log</div>
+      <div class="cover-decision-list">
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">Blank manual save = remove measurement</div>
+            <div class="cover-decision-desc">Saving the manual edit form with all fields empty or zero is valid — it acts as a detach, removing the measurement source from the proposal. No form validation error is needed. The confirmation modal copy should reflect this when all values are blank.</div>
+          </div>
+        </div>
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">Load error falls back to the existing in-app pattern</div>
+            <div class="cover-decision-desc">No panel-specific error state is being designed. If the API fails on panel open, the standard full-page error treatment used across the app handles it. Engineering to confirm the fallback wires up correctly.</div>
+          </div>
+        </div>
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">Unsaved changes dialog covers both panel close and page navigation</div>
+            <div class="cover-decision-desc">The "Discard unsaved measurements" modal fires for two triggers: closing the sidebar panel while in edit mode, and navigating away from the proposal page (e.g. clicking Back) while in edit mode. Same modal, same copy — the prototype was updated to remove the erroneous "?" from the title.</div>
+          </div>
+        </div>
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">Zero-value measurements need no warning</div>
+            <div class="cover-decision-desc">A measurement field of 0 is valid and expected (e.g. a flat roof with no hips). No warning or indicator is needed in the sidebar or on mapped line items. Zero values flow through to quantities as-is.</div>
+          </div>
+        </div>
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">Long report names truncate at dropdown width</div>
+            <div class="cover-decision-desc">No special handling needed. The source dropdown's full width is the natural truncation boundary — CSS text-overflow handles it. No additional design work required.</div>
+          </div>
+        </div>
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">"In progress" reports are displayed but not selectable</div>
+            <div class="cover-decision-desc">A report that's still being processed (e.g. just ordered) appears in the State A picker with an orange "In progress" badge, a clock icon, and "Ordered [date]". It has no radio button and can't be selected. Design confirmed in Figma (node 53:43694).</div>
+          </div>
+        </div>
+
+        <div class="cover-decision-item">
+          <div class="cover-decision-icon">🔵</div>
+          <div class="cover-decision-body">
+            <div class="cover-decision-name">Locked / read-only panel for sent proposals</div>
+            <div class="cover-decision-desc">When a proposal is sent or locked, the Measurements panel enters a fully view-only mode: the source dropdown is disabled (grey background, non-interactive), the Edit button is hidden, and measurements display as flat label/value rows. Design confirmed in Figma (node 549:13857).</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Missing states -->
+    <div class="cover-card">
+      <div class="cover-section-label">States still needed</div>
+      <div class="cover-missing-list">
+        <div class="cover-missing-item">
+          <div class="cover-missing-priority">🟡</div>
+          <div class="cover-missing-body">
+            <div class="cover-missing-name">Load error</div>
+            <div class="cover-missing-desc">API fails when the panel opens. Defaults to the existing in-app full-page error treatment — no panel-specific design needed, but eng should confirm the fallback behavior.</div>
+          </div>
+        </div>
+        <div class="cover-missing-item">
+          <div class="cover-missing-priority">🟡</div>
+          <div class="cover-missing-body">
+            <div class="cover-missing-name">Detach / remove measurement</div>
+            <div class="cover-missing-desc">Saving the manual form with all fields blank acts as a detach (removes the measurement source). There's no explicit detach control — if this is the intended path, it needs to be confirmed and the confirmation modal copy should reflect it.</div>
+          </div>
+        </div>
+        <div class="cover-missing-item">
+          <div class="cover-missing-priority">⚪</div>
+          <div class="cover-missing-body">
+            <div class="cover-missing-name">Multiple structures</div>
+            <div class="cover-missing-desc">Jobs with more than one structure aren't handled. How does the panel show or let the user choose between per-structure measurement data?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="cover-card">
+      <div class="cover-section-label">Sources</div>
+      <div class="cover-sources">
+        <div class="cover-source-row"><span class="cover-source-lbl">PRD</span><span>prd-proposal-measurements-sidebar.md</span></div>
+        <div class="cover-source-row"><span class="cover-source-lbl">Figma</span><span>Proposals-small-projects (L29gCz859bm2NIfaOSjOrk) — skeleton loader (549:14110), report processing (53:43694), error toast (959:16421), locked state (549:13857)</span></div>
+        <div class="cover-source-row"><span class="cover-source-lbl">Jira</span><span>PRO-15339 (mobile — item mapped to measurement with no measurement on proposal), PRODUCT-2076 (waste % in proposals), PRODUCT-2099 (siding measurements in proposals)</span></div>
+        <div class="cover-source-row"><span class="cover-source-lbl">GitHub</span><span>Not accessible — auth required.</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Page toast -->
+<div class="page-toast" id="page-toast">
+  <div class="page-toast-icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  </div>
+  <div class="page-toast-body">
+    <span class="page-toast-title">Proposal updated</span>
+    <span class="page-toast-sub" id="page-toast-sub">Quantities now reflect new report data.</span>
+  </div>
+  <button class="page-toast-close" onclick="closePageToast()" aria-label="Dismiss">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<!-- ─── HEADER ─── -->
+<div class="header">
+  <div class="header-left">
+    <a class="back-link" href="#" onclick="return false">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to proposals
+    </a>
+    <div class="autosave">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Changes auto-saved
+    </div>
+  </div>
+  <div class="header-center">
+    <span class="header-address">35 Daniel Street, Plattsville, ON N0J 1S0</span>
+    <button class="icon-btn" title="Edit address">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+  </div>
+  <div class="header-right">
+    <div class="draft-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Draft
+    </div>
+    <button class="btn btn-md btn-outline">Preview</button>
+    <button class="btn btn-md btn-primary">Send</button>
+  </div>
+</div>
+
+<!-- ─── LAYOUT ─── -->
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <!-- Customer card -->
+    <div>
+      <div class="lp-section-label">Customer</div>
+      <div class="lp-person-card">
+        <div class="lp-person-row">
+          <div>
+            <div class="lp-person-name">John Smith</div>
+            <div class="lp-person-email">john.smith@gmail.com</div>
+          </div>
+          <button class="lp-person-menu" title="More options">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <button class="lp-add-cosigner">Add cosigner</button>
+    </div>
+
+    <!-- Related card -->
+    <div class="lp-related-card">
+      <div class="lp-related-header" onclick="toggleRelated()">
+        <span class="lp-related-label">Related</span>
+        <span class="related-count" id="related-count" style="margin-left:auto">1</span>
+        <svg id="related-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--icon-icon-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="lp-related-links related-links" id="related-links">
+        <a class="related-link" href="#" onclick="return false">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          View job details
+        </a>
+      </div>
+    </div>
+
+    <!-- Proposal sections -->
+    <div style="flex:1">
+      <div class="lp-sections-hd">
+        Proposal sections
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--icon-icon-muted)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+
+      <!-- Cover -->
+      <div class="sec-item">
+        <span class="sec-item-label">Cover</span>
+      </div>
+
+      <!-- Introduction -->
+      <div class="sec-item">
+        <span class="lp-drag">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+        </span>
+        <span class="sec-item-label">Introduction</span>
+        <div class="sec-item-actions">
+          <button class="icon-btn" style="width:26px;height:26px;color:var(--icon-primary)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Estimate (active, with sub-items) -->
+      <div class="sec-group active">
+        <div class="sec-group-hd">
+          <span class="lp-drag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+          </span>
+          <span class="sec-item-label">Estimate</span>
+          <div class="sec-item-actions">
+            <button class="icon-btn" style="width:26px;height:26px" title="Estimate settings">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <button class="icon-btn" style="width:26px;height:26px" title="Add option">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sec-sub-item active">
+          <span class="lp-drag" style="opacity:0.4">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+          </span>
+          <span class="sec-sub-label">Simple option</span>
+          <button class="icon-btn dots-menu" style="width:22px;height:22px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div class="sec-sub-item">
+          <span class="lp-drag" style="opacity:0.4">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+          </span>
+          <span class="sec-sub-label">Option with discounts</span>
+          <button class="icon-btn dots-menu" style="width:22px;height:22px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div class="sec-sub-item">
+          <span class="lp-drag" style="opacity:0.4">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+          </span>
+          <span class="sec-sub-label">Option with upgrades</span>
+          <button class="icon-btn dots-menu" style="width:22px;height:22px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div class="sec-sub-item">
+          <span class="lp-drag" style="opacity:0.4">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+          </span>
+          <span class="sec-sub-label">Summary</span>
+        </div>
+      </div>
+
+      <!-- PDF pages -->
+      <div class="sec-item">
+        <span class="lp-drag">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+        </span>
+        <span class="sec-item-label">PDF pages</span>
+        <div class="sec-item-actions">
+          <button class="icon-btn" style="width:26px;height:26px;color:var(--icon-primary)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Photos & descriptions -->
+      <div class="sec-item">
+        <span class="lp-drag">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+        </span>
+        <span class="sec-item-label">Photos &amp; descriptions</span>
+        <div class="sec-item-actions">
+          <button class="icon-btn" style="width:26px;height:26px;color:var(--icon-primary)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- There's more to know -->
+      <div class="sec-item">
+        <span class="lp-drag">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+        </span>
+        <span class="sec-item-label">There's more to know</span>
+        <div class="sec-item-actions">
+          <button class="icon-btn" style="width:26px;height:26px;color:var(--icon-primary)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-dashed add-section-btn" style="width:100%;margin-top:8px;border-radius:var(--radius-lg);border-color:var(--border-primary)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New section
+      </button>
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- MAIN CANVAS -->
+  <div class="main-canvas">
+  <div class="canvas-inner">
+
+    <!-- Option page header (above card) -->
+    <div class="option-page-hd">
+      <span class="option-page-name">Simple option</span>
+      <div class="option-page-actions">
+        <button class="icon-btn" title="Duplicate">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="btn btn-sm btn-outline" style="border-radius:var(--radius-circle)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit option
+        </button>
+      </div>
+    </div>
+
+    <div class="option-card">
+
+      <!-- In-card title + subtitle -->
+      <div class="option-card-title-area">
+        <div class="option-title-row">
+          <span class="option-title">Simple option</span>
+          <button class="icon-btn" title="Edit title" style="color:var(--icon-primary)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+        <div class="option-card-subtitle">Professional shingle replacement with full cleanup and 5-year labor warranty.</div>
+      </div>
+      <div class="option-card-green-rule"></div>
+
+      <!-- Table header: Item | Qty | Unit price | Total -->
+      <div class="line-table-header" style="grid-template-columns:1fr 90px 100px 80px">
+        <span>Item</span>
+        <span style="text-align:left">Qty</span>
+        <span>Unit price</span>
+        <span>Total</span>
+      </div>
+
+      <!-- Line items (no section headings) -->
+      <div class="line-item" style="grid-template-columns:1fr 90px 100px 80px">
+        <div>
+          <div class="line-item-name">Labour</div>
+          <div class="line-item-desc">Install &amp; removal, full site cleanup</div>
+        </div>
+        <div class="line-item-val" style="text-align:left">1 ls</div>
+        <div class="line-item-val">$550.00</div>
+        <div class="line-item-subtotal">$550.00</div>
+      </div>
+
+      <div class="line-item" style="grid-template-columns:1fr 90px 100px 80px">
+        <div>
+          <div class="line-item-name">Shingles</div>
+          <div class="line-item-desc">Owens Corning Duration — Estate Gray</div>
+        </div>
+        <div class="line-item-val" style="text-align:left"><span id="qty-shingles">10</span> sq</div>
+        <div class="line-item-val">$55.00</div>
+        <div class="line-item-subtotal" id="sub-shingles">$550.00</div>
+      </div>
+
+      <div class="line-item" style="grid-template-columns:1fr 90px 100px 80px">
+        <div>
+          <div class="line-item-name">Flashing</div>
+          <div class="line-item-desc">Step &amp; counter flashing, galvanized</div>
+        </div>
+        <div class="line-item-val" style="text-align:left">10 lf</div>
+        <div class="line-item-val">$55.00</div>
+        <div class="line-item-subtotal">$550.00</div>
+      </div>
+
+      <div class="line-item" style="grid-template-columns:1fr 90px 100px 80px">
+        <div>
+          <div class="line-item-name">Vents</div>
+          <div class="line-item-desc">Low-profile off-ridge ventilation</div>
+        </div>
+        <div class="line-item-val" style="text-align:left">10 ea</div>
+        <div class="line-item-val">$10.00</div>
+        <div class="line-item-subtotal">$110.00</div>
+      </div>
+
+      <div class="line-item" style="grid-template-columns:1fr 90px 100px 80px">
+        <div>
+          <div class="line-item-name">Nails &amp; Fasteners</div>
+          <div class="line-item-desc">Roofing coil nails, stainless</div>
+        </div>
+        <div class="line-item-val" style="text-align:left">10 bx</div>
+        <div class="line-item-val">$10.00</div>
+        <div class="line-item-subtotal">$110.00</div>
+      </div>
+
+      <!-- Estimate subtotal -->
+      <div class="estimate-subtotal">
+        <span>Estimate subtotal</span>
+        <span id="estimate-total">$2,057.00</span>
+      </div>
+
+      <!-- Proposal footer -->
+      <div class="proposal-preview-footer">
+        <div class="footer-contact">
+          John Smith<br>
+          Elite Team<br>
+          (416) 555-0123<br>
+          john@roofr.com
+        </div>
+        <div class="footer-logo">Logo</div>
+      </div>
+
+    </div>
+
+  </div><!-- /canvas-inner -->
+  </div><!-- /main-canvas -->
+
+  <!-- RIGHT PANEL (slides over canvas) -->
+  <div class="right-panel" id="right-panel">
+
+    <!-- Panel: Estimate Settings (placeholder) -->
+    <div id="rp-estimate" class="hidden" style="height:100%;display:flex;flex-direction:column">
+      <div class="right-panel-header">
+        <span class="right-panel-title">Estimate settings</span>
+        <button class="right-panel-close" onclick="closePanel()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-inactive);font-size:var(--Sizes-Small);text-align:center;padding:24px">
+        Estimate settings content
+      </div>
+    </div>
+
+    <!-- Panel: Supplier (placeholder) -->
+    <div id="rp-supplier" class="hidden" style="height:100%;display:flex;flex-direction:column">
+      <div class="right-panel-header">
+        <span class="right-panel-title">Supplier</span>
+        <button class="right-panel-close" onclick="closePanel()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-inactive);font-size:var(--Sizes-Small);text-align:center;padding:24px">
+        Supplier settings content
+      </div>
+    </div>
+
+    <!-- Panel: Measurements -->
+    <div id="rp-measurements" class="hidden" style="height:100%;display:flex;flex-direction:column">
+
+      <!-- LOADING VIEW -->
+      <div id="view-loading" class="hidden" style="height:100%;display:flex;flex-direction:column">
+        <div class="right-panel-header">
+          <span class="right-panel-title">Measurement</span>
+          <button class="right-panel-close" onclick="closePanel()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="right-panel-content" style="padding:14px;display:flex;flex-direction:column;gap:10px">
+          <div class="skeleton-block" style="height:85px"></div>
+          <div class="skeleton-block" style="height:85px"></div>
+          <div class="skeleton-block" style="height:85px"></div>
+          <div class="skeleton-block" style="height:85px"></div>
+        </div>
+      </div>
+
+      <!-- SUMMARY VIEW -->
+      <div id="view-summary" style="height:100%;display:flex;flex-direction:column">
+        <div class="right-panel-header" id="rph-normal">
+          <span class="right-panel-title">Measurement</span>
+          <button class="right-panel-close" onclick="closePanel()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <!-- Edit mode header (shown during edit, replaces normal header) -->
+        <div class="rp-edit-header hidden" id="rph-editing">
+          <span class="rp-edit-title">Editing measurements</span>
+          <div class="rp-edit-actions">
+            <button class="btn btn-sm btn-ghost" onclick="cancelEditMode()">Cancel</button>
+            <button class="btn btn-sm btn-primary" onclick="triggerSaveManual()">Save</button>
+          </div>
+        </div>
+
+        <div class="right-panel-content">
+
+          <!-- Source details section -->
+          <div class="src-section hidden" id="src-section">
+            <div class="src-section-label">Source details</div>
+
+            <!-- Static display: used when only one option exists and no dropdown needed (State G) -->
+            <div class="src-static hidden" id="src-static">
+              <div class="src-static-icon" id="src-static-icon">
+                <!-- svg injected by JS -->
+              </div>
+              <div class="src-static-info">
+                <span class="src-static-name" id="src-static-name">Manual measurements</span>
+              </div>
+            </div>
+
+            <!-- Dropdown: used for States C, D, E, F -->
+            <div class="src-dropdown-wrap hidden" id="src-dropdown-wrap">
+              <button class="src-btn" id="src-btn" onclick="toggleSourceDropdown()">
+                <div class="src-btn-inner">
+                  <div class="src-btn-icon" id="src-btn-icon"><!-- svg injected --></div>
+                  <div class="src-btn-text">
+                    <span class="src-btn-name" id="src-btn-name">Roofr Report</span>
+                    <span class="src-btn-meta" id="src-btn-meta">Mar 12 · 22.1 sq</span>
+                  </div>
+                </div>
+                <svg class="src-chevron" id="src-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="src-dropdown-list hidden" id="src-dropdown-list">
+                <!-- populated by JS -->
+              </div>
+            </div>
+
+            <a class="view-report-link hidden" id="view-report-link" href="#" onclick="return false">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              View full report
+            </a>
+          </div>
+
+          <!-- Measurements (unified locked/edit form) -->
+          <div id="meas-form-section">
+            <div class="meas-form-hd">
+              <span class="meas-form-hd-label">Measurements</span>
+              <div id="meas-edit-controls">
+                <button class="btn-link" onclick="enterEditMode()">Edit</button>
+              </div>
+            </div>
+            <div class="form-group" style="border-top:none">
+              <div class="form-group-lbl">Area (by squares)</div>
+              <div class="form-row"><span class="form-row-lbl">Flat roof area</span><input class="form-input" id="fi-flat-sq" type="number" value="0" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Pitched roof area</span><input class="form-input" id="fi-pitched-sq" type="number" value="22.1" step="0.1" disabled></div>
+            </div>
+            <div class="form-group">
+              <div class="form-group-lbl">Area (by square feet)</div>
+              <div class="form-row"><span class="form-row-lbl">Flat roof area</span><input class="form-input" id="fi-flat-sqft" type="number" value="0" step="1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Pitched roof area</span><input class="form-input" id="fi-pitched-sqft" type="number" value="2210" step="1" disabled></div>
+            </div>
+            <div class="form-group">
+              <div class="form-group-lbl">Length (by linear feet)</div>
+              <div class="form-row"><span class="form-row-lbl">Hips</span><input class="form-input" id="fi-hips" type="number" value="0" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Eaves</span><input class="form-input" id="fi-eaves" type="number" value="175.35" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Rakes</span><input class="form-input" id="fi-rakes" type="number" value="161.45" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Ridges</span><input class="form-input" id="fi-ridges" type="number" value="63.22" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Parapet</span><input class="form-input" id="fi-parapet" type="number" value="0" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Valleys</span><input class="form-input" id="fi-valleys" type="number" value="0" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Transitions</span><input class="form-input" id="fi-transitions" type="number" value="7.32" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Step Flashing</span><input class="form-input" id="fi-step" type="number" value="64.89" step="0.1" disabled></div>
+              <div class="form-row"><span class="form-row-lbl">Wall Flashing</span><input class="form-input" id="fi-wall" type="number" value="47.65" step="0.1" disabled></div>
+            </div>
+          </div>
+
+          <!-- Waste -->
+          <div class="waste-section">
+            <div class="waste-title">Waste % / Squares</div>
+            <div class="waste-grid">
+              <div class="waste-grid-header">
+                <div class="wc lbl hdr">Waste</div>
+                <div class="wc hdr">0%</div>
+                <div class="wc hdr">10%</div>
+                <div class="wc rec-hdr">11%</div>
+                <div class="wc hdr">12%</div>
+                <div class="wc hdr">15%</div>
+                <div class="wc hdr">17%</div>
+                <div class="wc hdr">20%</div>
+              </div>
+              <div class="waste-grid-row">
+                <div class="wc lbl">sqft</div>
+                <div class="wc" id="w-0-sqft">2,210</div>
+                <div class="wc" id="w-10-sqft">2,431</div>
+                <div class="wc rec" id="w-11-sqft">2,453</div>
+                <div class="wc" id="w-12-sqft">2,475</div>
+                <div class="wc" id="w-15-sqft">2,542</div>
+                <div class="wc" id="w-17-sqft">2,586</div>
+                <div class="wc" id="w-20-sqft">2,652</div>
+              </div>
+              <div class="waste-grid-row">
+                <div class="wc lbl">sq</div>
+                <div class="wc" id="w-0-sq">22.1</div>
+                <div class="wc" id="w-10-sq">24.3</div>
+                <div class="wc rec" id="w-11-sq">24.5</div>
+                <div class="wc" id="w-12-sq">24.8</div>
+                <div class="wc" id="w-15-sq">25.4</div>
+                <div class="wc" id="w-17-sq">25.9</div>
+                <div class="wc" id="w-20-sq">26.5</div>
+              </div>
+            </div>
+          </div>
+
+
+        </div><!-- /right-panel-content -->
+      </div><!-- /view-summary -->
+
+      <!-- EMPTY VIEW -->
+      <div id="view-empty" class="hidden" style="height:100%;display:flex;flex-direction:column">
+        <div class="right-panel-header">
+          <span class="right-panel-title">Measurement</span>
+          <button class="right-panel-close" onclick="closePanel()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- State A: reports available inline -->
+        <div id="empty-with-reports" class="hidden" style="display:flex;flex-direction:column;height:100%">
+          <div style="padding:14px 14px 12px">
+            <div style="font-size:var(--Sizes-Small);font-weight:500;color:var(--text-highlight);margin-bottom:5px">No measurements attached</div>
+            <div style="font-size:var(--Sizes-Smaller);color:var(--text-muted);line-height:1.5">Select a report from this job to calculate quantities automatically, or you can add manual measurements below.</div>
+          </div>
+          <div style="padding:0 12px;display:flex;flex-direction:column;gap:8px;flex:1">
+            <!-- Roofr Report card (radio select) -->
+            <div class="rpt-card-v2" id="rca-roofr" style="align-items:flex-start;padding:12px;cursor:pointer" onclick="selectEmptyReportV2('roofr')">
+              <input type="radio" name="rpt-select" id="rca-radio-roofr" style="margin-top:3px;flex-shrink:0;accent-color:var(--roofr-blue);width:15px;height:15px;cursor:pointer">
+              <div class="rpt-card-icon report" style="flex-shrink:0;width:34px;height:34px;margin-top:0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="rpt-card-body" style="flex:1;min-width:0">
+                <div class="rpt-card-hd" style="margin-bottom:3px">
+                  <span class="rpt-card-name">Roofr Report</span>
+                  <span class="rpt-ready">Ready</span>
+                </div>
+                <div class="rpt-card-stats">22.1 sq · 4/12 pitch</div>
+                <div class="rpt-card-date" style="margin-top:2px">Completed March 12, 2026</div>
+              </div>
+            </div>
+            <!-- Roofr Report (In progress) — shown in state A2 only -->
+            <div class="rpt-card-v2 processing hidden" id="rca-processing" style="align-items:flex-start;padding:12px;gap:10px">
+              <div style="width:15px;height:15px;flex-shrink:0;margin-top:3px;display:flex;align-items:center;justify-content:center;color:var(--components-tag-thumbnail-orange-text)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="rpt-card-icon report" style="flex-shrink:0;width:34px;height:34px;margin-top:0;opacity:0.5">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="rpt-card-body" style="flex:1;min-width:0">
+                <div class="rpt-card-hd" style="margin-bottom:3px">
+                  <span class="rpt-card-name">Roofr Report</span>
+                  <span class="rpt-processing">In progress</span>
+                </div>
+                <div class="rpt-card-stats">22.1 sq · 4/12 pitch</div>
+                <div class="rpt-card-date" style="margin-top:2px">Ordered March 12, 2026</div>
+              </div>
+            </div>
+            <!-- DIY Report card (radio select) -->
+            <div class="rpt-card-v2" id="rca-diy" style="align-items:flex-start;padding:12px;cursor:pointer" onclick="selectEmptyReportV2('diy')">
+              <input type="radio" name="rpt-select" id="rca-radio-diy" style="margin-top:3px;flex-shrink:0;accent-color:var(--roofr-blue);width:15px;height:15px;cursor:pointer">
+              <div class="rpt-card-icon diy" style="flex-shrink:0;width:34px;height:34px;margin-top:0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </div>
+              <div class="rpt-card-body" style="flex:1;min-width:0">
+                <div class="rpt-card-hd" style="margin-bottom:3px">
+                  <span class="rpt-card-name">DIY Report</span>
+                  <span class="rpt-ready">Ready</span>
+                </div>
+                <div class="rpt-card-stats">23.4 sq · 4/12 pitch</div>
+                <div class="rpt-card-date" style="margin-top:2px">Completed March 28, 2026</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:12px 12px 16px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border-default);margin-top:12px">
+            <button class="btn btn-md btn-primary rpt-attach-btn" id="rca-attach-btn" style="width:100%" disabled onclick="confirmEmptyAttachV2()">
+              Attach report
+            </button>
+            <button class="btn btn-md btn-secondary" style="width:100%" onclick="showSummaryView(); enterEditMode(true)">
+              Add manual measurements
+            </button>
+          </div>
+        </div>
+
+        <!-- State B: no reports on job -->
+        <div id="empty-no-reports" class="empty-state hidden">
+          <div class="empty-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4l-5 5-4-4-5 5"/></svg>
+          </div>
+          <div class="empty-title">No measurements attached</div>
+          <div class="empty-body">No reports exist for this job yet. Enter measurements manually to get started.</div>
+          <div class="empty-actions">
+            <button class="btn btn-lg btn-outline" style="width:100%" onclick="showSummaryView(); enterEditMode(true)">
+              Add manual measurements
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /rp-measurements -->
+  </div><!-- /right-panel -->
+
+  <!-- RIGHT RAIL -->
+  <div class="right-rail">
+    <button class="rail-item" id="rail-estimate" onclick="togglePanel('estimate')" title="Estimate settings">
+      <div class="rail-item-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <span class="rail-item-label">Estimate settings</span>
+    </button>
+    <button class="rail-item" id="rail-supplier" onclick="togglePanel('supplier')" title="Supplier">
+      <div class="rail-item-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <span class="rail-item-label">Supplier</span>
+    </button>
+    <!-- NEW: Measurements -->
+    <button class="rail-item active" id="rail-measurements" onclick="togglePanel('measurements')" title="Measurements">
+      <div class="rail-item-icon">
+        <!-- Default: plain ruler (no measurements attached) -->
+        <svg class="measure-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 8H6M4 12H7M4 16H6M8 4V6M12 4V7M16 4V6M5 4H19C19.2652 4 19.5196 4.10536 19.7071 4.29289C19.8946 4.48043 20 4.73478 20 5V10C20 10.2652 19.8946 10.5196 19.7071 10.7071C19.5196 10.8946 19.2652 11 19 11H12C11.7348 11 11.4804 11.1054 11.2929 11.2929C11.1054 11.4804 11 11.7348 11 12V19C11 19.2652 10.8946 19.5196 10.7071 19.7071C10.5196 19.8946 10.2652 20 10 20H5C4.73478 20 4.48043 19.8946 4.29289 19.7071C4.10536 19.5196 4 19.2652 4 19V5C4 4.73478 4.10536 4.48043 4.29289 4.29289C4.48043 4.10536 4.73478 4 5 4Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <!-- Active: ruler + green check badge (measurements attached) -->
+        <svg class="measure-icon-active" width="22" height="21" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.6484 16H14.6484M12.6484 20H15.6484M12.6484 24H14.6484M16.6484 12V14M20.6484 12V15M24.6484 12V14M13.6484 12H27.6484C27.9137 12 28.168 12.1054 28.3555 12.2929C28.5431 12.4804 28.6484 12.7348 28.6484 13V18C28.6484 18.2652 28.5431 18.5196 28.3555 18.7071C28.168 18.8946 27.9137 19 27.6484 19H20.6484C20.3832 19 20.1289 19.1054 19.9413 19.2929C19.7538 19.4804 19.6484 19.7348 19.6484 20V27C19.6484 27.2652 19.5431 27.5196 19.3555 27.7071C19.168 27.8946 18.9137 28 18.6484 28H13.6484C13.3832 28 13.1289 27.8946 12.9413 27.7071C12.7538 27.5196 12.6484 27.2652 12.6484 27L12.6484 13C12.6484 12.7348 12.7538 12.4804 12.9413 12.2929C13.1289 12.1054 13.3832 12 13.6484 12Z" stroke="#28373E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          <g clip-path="url(#clip-measure-badge)">
+            <path d="M8.00016 14.6668C11.6821 14.6668 14.6668 11.6821 14.6668 8.00016C14.6668 4.31826 11.6821 1.3335 8.00016 1.3335C4.31826 1.3335 1.3335 4.31826 1.3335 8.00016C1.3335 11.6821 4.31826 14.6668 8.00016 14.6668Z" fill="#D4EDDA"/>
+            <path d="M10.6668 6.66683L7.22598 10.0002L5.3335 8.00016" fill="#D4EDDA"/>
+            <path d="M10.6668 6.66683L7.22598 10.0002L5.3335 8.00016M14.6668 8.00016C14.6668 11.6821 11.6821 14.6668 8.00016 14.6668C4.31826 14.6668 1.3335 11.6821 1.3335 8.00016C1.3335 4.31826 4.31826 1.3335 8.00016 1.3335C11.6821 1.3335 14.6668 4.31826 14.6668 8.00016Z" stroke="#28A745" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <defs>
+            <clipPath id="clip-measure-badge"><rect width="16" height="16" fill="white"/></clipPath>
+          </defs>
+        </svg>
+      </div>
+      <span class="rail-item-label">Measure</span>
+    </button>
+  </div>
+
+</div><!-- /layout -->
+
+<!-- Zoom bar -->
+<div class="zoom-bar">
+  <button class="zoom-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  <div class="zoom-val">100% <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+  <button class="zoom-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modal-title">Replace quantities from report data</div>
+      <button class="modal-close-btn" onclick="closeModal('confirm-overlay')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-bd">
+      <p class="modal-text" id="modal-body">Switching to this report will recalculate quantities of mapped line items across your proposal. Your current values will be replaced and this can't be undone.</p>
+      <div class="modal-detail-v2 hidden" id="modal-detail">
+        <div class="modal-detail-v2-icon" id="modal-detail-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="modal-detail-v2-body">
+          <div class="modal-detail-v2-name" id="modal-detail-name"></div>
+          <div class="modal-detail-v2-meta" id="modal-detail-meta"></div>
+        </div>
+        <button class="btn-link" style="font-size:var(--Sizes-Smaller);white-space:nowrap;flex-shrink:0" onclick="return false">
+          View report
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-link btn-link-muted" onclick="cancelConfirm()">Go back</button>
+      <button class="btn btn-lg btn-primary" onclick="confirmAction()">Update proposal</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT PICKER MODAL -->
+<div class="overlay" id="picker-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Select a report</div>
+      <button class="modal-close-btn" onclick="closeModal('picker-overlay')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-bd">
+      <div class="report-opt selected" id="picker-roofr" onclick="pickReport('roofr')">
+        <div class="report-opt-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div><div class="report-opt-name">Roofr Report</div><div class="report-opt-meta">Mar 12, 2026 · 22.1 sq · 4/12 pitch</div></div>
+        <svg class="report-opt-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="report-opt" id="picker-diy" onclick="pickReport('diy')">
+        <div class="report-opt-icon" style="background:var(--background-secondary)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--icon-icon-muted)"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <div><div class="report-opt-name">DIY Report</div><div class="report-opt-meta">Mar 28, 2026 · 23.4 sq · 4/12 pitch</div></div>
+        <svg class="report-opt-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-link btn-link-muted" onclick="closeModal('picker-overlay')">Cancel</button>
+      <button class="btn btn-lg btn-primary" onclick="confirmPicker()">Attach report</button>
+    </div>
+  </div>
+</div>
+
+<!-- ERROR TOAST -->
+<div class="error-toast" id="error-toast">
+  <div class="error-toast-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </div>
+  <div class="error-toast-body">
+    <span class="error-toast-title">Proposal was not updated</span>
+    <span class="error-toast-sub">Please try again or contact support if the issue persists.</span>
+  </div>
+  <button class="error-toast-close" onclick="closeErrorToast()" aria-label="Dismiss">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<!-- UNSAVED CHANGES MODAL -->
+<div class="overlay" id="unsaved-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Discard unsaved measurements</div>
+      <button class="modal-close-btn" onclick="closeModal('unsaved-overlay')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-bd">
+      <p class="modal-text">You have unsaved measurements. Leaving now will lose your edits.</p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-lg btn-secondary" onclick="closeModal('unsaved-overlay')">Keep editing</button>
+      <button class="btn btn-lg btn-danger" onclick="discardChanges()">Discard changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  roofr: {
+    badge: 'report', badgeText: 'Roofr Report',
+    btnName: 'Roofr Report', btnDate: 'Mar. 12 · 22.1 sq',
+    detailName: 'Roofr Report', detailMeta: '22.1 sq · 4/12 pitch · Completed March 12, 2026',
+    sq: 22.1,
+    qtyShingles:'10', subShingles:'$550.00', total:'$2,057.00',
+    fi: { flatSq:0, pitchedSq:22.1, flatSqft:0, pitchedSqft:2210,
+          hips:0, eaves:175.35, rakes:161.45, ridges:63.22,
+          parapet:0, valleys:0, transitions:7.32, step:64.89, wall:47.65 },
+  },
+  'roofr-v1': {
+    badge: 'report', badgeText: 'Roofr Report (1/2)',
+    btnName: 'Roofr Report (1/2)', btnDate: 'Mar. 12 · 22 sq',
+    detailName: 'Roofr Report (1/2)', detailMeta: '22 sq · 4/12 pitch · Completed March 12, 2026',
+    sq: 22.0,
+    qtyShingles:'10', subShingles:'$550.00', total:'$2,057.00',
+    fi: { flatSq:0, pitchedSq:22.0, flatSqft:0, pitchedSqft:2200,
+          hips:0, eaves:174.0, rakes:160.0, ridges:63.22,
+          parapet:0, valleys:0, transitions:7.32, step:64.89, wall:47.65 },
+  },
+  'roofr-v2': {
+    badge: 'report', badgeText: 'Roofr Report (2/2)',
+    btnName: 'Roofr Report (2/2)', btnDate: 'Apr. 2 · 21.5 sq',
+    detailName: 'Roofr Report (2/2)', detailMeta: '21.5 sq · 4/12 pitch · Completed April 2, 2026',
+    sq: 21.5,
+    qtyShingles:'10', subShingles:'$550.00', total:'$2,057.00',
+    fi: { flatSq:0, pitchedSq:21.5, flatSqft:0, pitchedSqft:2150,
+          hips:0, eaves:172.0, rakes:158.5, ridges:63.22,
+          parapet:0, valleys:0, transitions:7.32, step:64.89, wall:47.65 },
+  },
+  diy: {
+    badge: 'diy', badgeText: 'DIY Report',
+    btnName: 'DIY Report', btnDate: 'Mar. 28 · 23.4 sq',
+    detailName: 'DIY Report', detailMeta: '23.4 sq · 4/12 pitch · Completed March 28, 2026',
+    sq: 23.4,
+    qtyShingles:'11', subShingles:'$605.00', total:'$2,167.00',
+    fi: { flatSq:0, pitchedSq:23.4, flatSqft:0, pitchedSqft:2340,
+          hips:0, eaves:178.5, rakes:165.0, ridges:63.22,
+          parapet:0, valleys:0, transitions:7.32, step:64.89, wall:47.65 },
+  },
+};
+
+let activePanel = 'measurements';
+let activeVersion = 'roofr';
+let pendingAction = null;
+let pendingVersion = null;
+let pickerSelected = 'roofr';
+let versionDropdownOpen = false;
+let activeSource = 'roofr'; // 'roofr', 'diy', or 'manual'
+let sourceDropdownOpen = false;
+let isEditing = false;
+let pendingDiscardAction = null;
+
+// ─── COVER PAGE ───
+function showCover() {
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('state-btn-cover').classList.add('active');
+  document.getElementById('cover-view').classList.remove('hidden');
+}
+
+function hideCover() {
+  document.getElementById('cover-view').classList.add('hidden');
+}
+
+// ─── PANEL ───
+function togglePanel(name) {
+  if (activePanel === name) {
+    closePanel();
+    return;
+  }
+  openPanel(name);
+}
+
+function openPanel(name) {
+  activePanel = name;
+  // show correct content
+  ['estimate','supplier','measurements'].forEach(n => {
+    const el = document.getElementById(`rp-${n}`);
+    if (el) el.classList.toggle('hidden', n !== name);
+  });
+  // activate rail
+  ['estimate','supplier','measurements'].forEach(n => {
+    document.getElementById(`rail-${n}`).classList.toggle('active', n === name);
+  });
+  document.getElementById('right-panel').classList.add('open');
+}
+
+function closePanel() {
+  if (isEditing) {
+    pendingDiscardAction = () => {
+      activePanel = null;
+      document.getElementById('right-panel').classList.remove('open');
+      ['estimate','supplier','measurements'].forEach(n => document.getElementById(`rail-${n}`).classList.remove('active'));
+    };
+    openModal('unsaved-overlay');
+    return;
+  }
+  activePanel = null;
+  document.getElementById('right-panel').classList.remove('open');
+  ['estimate','supplier','measurements'].forEach(n => {
+    document.getElementById(`rail-${n}`).classList.remove('active');
+  });
+}
+
+// ─── MEASUREMENT VIEWS ───
+function showSummaryView() {
+  document.getElementById('view-loading').classList.add('hidden');
+  document.getElementById('view-summary').classList.remove('hidden');
+  document.getElementById('view-empty').classList.add('hidden');
+}
+
+function showEmptyView() {
+  document.getElementById('view-loading').classList.add('hidden');
+  document.getElementById('view-summary').classList.add('hidden');
+  document.getElementById('view-empty').classList.remove('hidden');
+}
+
+function showLoadingView() {
+  document.getElementById('view-loading').classList.remove('hidden');
+  document.getElementById('view-summary').classList.add('hidden');
+  document.getElementById('view-empty').classList.add('hidden');
+}
+
+// ─── ERROR TOAST ───
+let errorToastTimer = null;
+function showErrorToast() {
+  closePageToast();
+  document.getElementById('error-toast').classList.add('visible');
+  clearTimeout(errorToastTimer);
+  errorToastTimer = setTimeout(closeErrorToast, 6000);
+}
+function closeErrorToast() {
+  document.getElementById('error-toast').classList.remove('visible');
+}
+
+// ─── EDIT MODE (inline, no panel swap) ───
+const FORM_IDS = ['fi-flat-sq','fi-pitched-sq','fi-flat-sqft','fi-pitched-sqft',
+  'fi-hips','fi-eaves','fi-rakes','fi-ridges','fi-parapet',
+  'fi-valleys','fi-transitions','fi-step','fi-wall'];
+
+let savedFormValues = {};
+
+function populateFormInputs(fi) {
+  const map = { 'fi-flat-sq': fi.flatSq, 'fi-pitched-sq': fi.pitchedSq,
+    'fi-flat-sqft': fi.flatSqft, 'fi-pitched-sqft': fi.pitchedSqft,
+    'fi-hips': fi.hips, 'fi-eaves': fi.eaves, 'fi-rakes': fi.rakes,
+    'fi-ridges': fi.ridges, 'fi-parapet': fi.parapet, 'fi-valleys': fi.valleys,
+    'fi-transitions': fi.transitions, 'fi-step': fi.step, 'fi-wall': fi.wall };
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = map[id] ?? '';
+  });
+}
+
+function lockFormInputs() {
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = true;
+  });
+  document.getElementById('meas-edit-controls').classList.remove('hidden');
+}
+
+function enterEditMode(clearValues) {
+  isEditing = true;
+  // Save current values for cancel
+  savedFormValues = {};
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) savedFormValues[id] = el.value;
+  });
+  if (clearValues) FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Enable inputs
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = false;
+  });
+  // Show edit header, hide normal header
+  document.getElementById('rph-normal').classList.add('hidden');
+  document.getElementById('rph-editing').classList.remove('hidden');
+  // Disable source dropdown button
+  const srcBtn = document.getElementById('src-btn');
+  if (srcBtn) srcBtn.disabled = true;
+  // Hide edit controls (button hidden while editing)
+  document.getElementById('meas-edit-controls').classList.add('hidden');
+  closeSourceDropdown();
+  // Focus first input
+  const first = document.getElementById('fi-flat-sq');
+  if (first) first.focus();
+}
+
+function cancelEditMode() {
+  // Restore saved values
+  FORM_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && savedFormValues[id] !== undefined) el.value = savedFormValues[id];
+  });
+  isEditing = false;
+  // Restore header
+  document.getElementById('rph-editing').classList.add('hidden');
+  document.getElementById('rph-normal').classList.remove('hidden');
+  // Re-enable source button
+  const srcBtn = document.getElementById('src-btn');
+  if (srcBtn) srcBtn.disabled = false;
+  // Show edit controls
+  document.getElementById('meas-edit-controls').classList.remove('hidden');
+  lockFormInputs();
+}
+
+function exitEditMode() {
+  isEditing = false;
+  // Restore header
+  document.getElementById('rph-editing').classList.add('hidden');
+  document.getElementById('rph-normal').classList.remove('hidden');
+  // Re-enable source button
+  const srcBtn = document.getElementById('src-btn');
+  if (srcBtn) srcBtn.disabled = false;
+  // Show edit controls
+  document.getElementById('meas-edit-controls').classList.remove('hidden');
+  lockFormInputs();
+}
+
+// ─── VERSION DROPDOWN (legacy, kept for compatibility) ───
+function toggleVersionDropdown() {
+  // Replaced by source dropdown
+}
+
+function closeVersionDropdown() {
+  // No-op: replaced by closeSourceDropdown
+}
+
+function selectVersion(v) {
+  closeSourceDropdown();
+  if (v === activeVersion) return;
+  pendingAction = 'switch-version';
+  pendingVersion = v;
+  const d = DATA[v];
+  document.getElementById('modal-title').textContent = `Replace quantities from ${d.badgeText} data`;
+  document.getElementById('modal-body').textContent = "Switching to this report will recalculate quantities of mapped line items across your proposal. Your current values will be replaced and this can't be undone.";
+  showModalDetail(v);
+  openModal('confirm-overlay');
+}
+
+// ─── ATTACH REPORT (State A per-card button) ───
+function attachReport(v) {
+  pendingAction = 'switch-version';
+  pendingVersion = v;
+  const d = DATA[v];
+  document.getElementById('modal-title').textContent = 'Replace quantities from report data';
+  document.getElementById('modal-body').textContent = "Switching to this report will recalculate quantities of mapped line items across your proposal. Your current values will be replaced and this can't be undone.";
+  showModalDetail(v);
+  openModal('confirm-overlay');
+}
+
+function showModalDetail(v) {
+  const d = DATA[v];
+  const detailEl = document.getElementById('modal-detail');
+  const iconEl = document.getElementById('modal-detail-icon');
+  const nameEl = document.getElementById('modal-detail-name');
+  const metaEl = document.getElementById('modal-detail-meta');
+  if (!detailEl) return;
+  detailEl.classList.remove('hidden');
+  if (iconEl) {
+    if (d.badge === 'diy') {
+      iconEl.className = 'modal-detail-v2-icon diy';
+      iconEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+    } else {
+      iconEl.className = 'modal-detail-v2-icon';
+      iconEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    }
+  }
+  if (nameEl) nameEl.textContent = d.detailName || d.btnName;
+  if (metaEl) metaEl.textContent = d.detailMeta || d.btnDate;
+}
+
+// ─── SOURCE DROPDOWN ───
+function toggleSourceDropdown() {
+  sourceDropdownOpen = !sourceDropdownOpen;
+  document.getElementById('src-dropdown-list').classList.toggle('hidden', !sourceDropdownOpen);
+  document.getElementById('src-btn').classList.toggle('open', sourceDropdownOpen);
+  document.getElementById('src-chevron').classList.toggle('open', sourceDropdownOpen);
+}
+
+function closeSourceDropdown() {
+  sourceDropdownOpen = false;
+  const list = document.getElementById('src-dropdown-list');
+  const btn = document.getElementById('src-btn');
+  const chevron = document.getElementById('src-chevron');
+  if (list) list.classList.add('hidden');
+  if (btn) btn.classList.remove('open');
+  if (chevron) chevron.classList.remove('open');
+}
+
+function selectSource(v) {
+  closeSourceDropdown();
+  if (v === activeSource) return;
+  if (v === 'manual') {
+    enterEditMode(activeSource === null);
+  } else {
+    selectVersion(v);
+  }
+}
+
+// ─── SAVE MANUAL ───
+function triggerSaveManual() {
+  pendingAction = 'save-manual';
+  document.getElementById('modal-title').textContent = 'Replace quantities from manual measurements';
+  const detailEl = document.getElementById('modal-detail');
+  // If a report is currently active, show its details and different copy
+  if (activeSource === 'roofr' || activeSource === 'diy' || activeSource === 'roofr-v1' || activeSource === 'roofr-v2') {
+    document.getElementById('modal-body').textContent = "Your manual values will override the quantities from this report. Mapped line items will recalculate and this can't be undone.";
+    showModalDetail(activeSource);
+  } else {
+    document.getElementById('modal-body').textContent = "Adding measurements will recalculate quantities of mapped line items across your proposal. Your current values will be replaced and this can't be undone.";
+    if (detailEl) detailEl.classList.add('hidden');
+  }
+  openModal('confirm-overlay');
+}
+
+// ─── CONFIRM ───
+function confirmAction() {
+  closeModal('confirm-overlay');
+  if (pendingAction === 'switch-version') applyVersion(pendingVersion);
+  else if (pendingAction === 'save-manual') applyManual();
+  pendingAction = null; pendingVersion = null;
+}
+
+function cancelConfirm() {
+  closeModal('confirm-overlay');
+  pendingAction = null; pendingVersion = null;
+}
+
+function applyVersion(v) {
+  activeVersion = v;
+  activeSource = v;
+  const d = DATA[v];
+  // Update source button display
+  updateSrcBtnDisplay(v);
+  // Update dropdown selected state
+  rebuildDropdownOptions();
+  // Show view-report link
+  document.getElementById('view-report-link').classList.remove('hidden');
+  // populate and lock form inputs
+  populateFormInputs(d.fi);
+  exitEditMode();
+  // update waste table
+  const sq = d.sq;
+  [0,10,11,12,15,17,20].forEach(f => {
+    const k = String(f);
+    const mult = 1 + f/100;
+    const sqv = (sq * mult).toFixed(1);
+    const sqftv = Math.round(sq * 100 * mult).toLocaleString();
+    const sqEl = document.getElementById(`w-${k}-sq`);
+    const sqftEl = document.getElementById(`w-${k}-sqft`);
+    if(sqEl) sqEl.textContent = sqv;
+    if(sqftEl) sqftEl.textContent = sqftv;
+  });
+  // update line items with flash
+  flashUpdate('qty-shingles', d.qtyShingles);
+  flashUpdate('sub-shingles', d.subShingles);
+  flashUpdate('estimate-total', d.total);
+  showPageToast(`Proposal updated. Quantities now reflect report data.`);
+  showSummaryView();
+  updateMeasureIcon();
+}
+
+function applyManual() {
+  activeSource = 'manual';
+  activeVersion = null;
+  // Update source button to show manual
+  updateSrcBtnDisplay('manual');
+  // Hide view-report link
+  document.getElementById('view-report-link').classList.add('hidden');
+  // Update dropdown selected state
+  rebuildDropdownOptions();
+  exitEditMode();
+  showPageToast('Proposal updated. Quantities now reflect saved manual measurement data.');
+  showSummaryView();
+  updateMeasureIcon();
+}
+
+// Helper: update the source button icon + text for given source key
+function updateSrcBtnDisplay(src) {
+  const iconEl = document.getElementById('src-btn-icon');
+  const nameEl = document.getElementById('src-btn-name');
+  const metaEl = document.getElementById('src-btn-meta');
+  if (!iconEl) return;
+  const d = DATA[src];
+  if (d && d.badge === 'report') {
+    iconEl.className = 'src-btn-icon report';
+    iconEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    if (nameEl) nameEl.textContent = d.btnName;
+    if (metaEl) metaEl.textContent = d.btnDate;
+  } else if (d && d.badge === 'diy') {
+    iconEl.className = 'src-btn-icon diy';
+    iconEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+    if (nameEl) nameEl.textContent = d.btnName;
+    if (metaEl) metaEl.textContent = d.btnDate;
+  } else {
+    // manual
+    iconEl.className = 'src-btn-icon manual';
+    iconEl.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+    if (nameEl) nameEl.textContent = 'Manual measurements';
+    if (metaEl) metaEl.textContent = '';
+  }
+}
+
+// Helper: rebuild dropdown list HTML based on current state options
+let _currentDropdownOptions = []; // set by updateSourceSection
+function rebuildDropdownOptions() {
+  const list = document.getElementById('src-dropdown-list');
+  if (!list) return;
+  list.innerHTML = _currentDropdownOptions.map(opt => {
+    if (opt.divider) return '<div class="src-divider"></div>';
+    const isSelected = opt.value === activeSource;
+    const selClass = isSelected ? ' selected' : '';
+    return `<div class="src-option${selClass}" onclick="selectSource('${opt.value}')">
+      <div class="src-option-icon ${opt.iconClass}">${opt.iconSvg}</div>
+      <div class="src-option-body">
+        <span class="src-option-name">${opt.name}</span>
+        ${opt.meta ? `<span class="src-option-meta">${opt.meta}</span>` : ''}
+      </div>
+      <svg class="src-option-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>`;
+  }).join('');
+}
+
+function flashUpdate(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  el.classList.add('updated');
+  setTimeout(() => el.classList.remove('updated'), 1200);
+}
+
+// ─── PAGE TOAST ───
+function showPageToast(msg) {
+  document.getElementById('page-toast-sub').textContent = msg;
+  const t = document.getElementById('page-toast');
+  t.classList.add('visible');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => closePageToast(), 5000);
+}
+function closePageToast() {
+  document.getElementById('page-toast').classList.remove('visible');
+}
+
+// ─── MODALS ───
+function openModal(id) {
+  document.getElementById(id).classList.add('visible');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('visible');
+}
+
+function discardChanges() {
+  closeModal('unsaved-overlay');
+  isEditing = false;
+  cancelEditMode();
+  if (pendingDiscardAction) {
+    pendingDiscardAction();
+    pendingDiscardAction = null;
+  }
+}
+
+// ─── PICKER ───
+function openReportPicker() {
+  pickerSelected = 'roofr';
+  document.getElementById('picker-roofr').classList.add('selected');
+  document.getElementById('picker-diy').classList.remove('selected');
+  openModal('picker-overlay');
+}
+function pickReport(v) {
+  pickerSelected = v;
+  document.getElementById('picker-roofr').classList.toggle('selected', v==='roofr');
+  document.getElementById('picker-diy').classList.toggle('selected', v==='diy');
+}
+function confirmPicker() {
+  closeModal('picker-overlay');
+  pendingAction = 'switch-version';
+  pendingVersion = pickerSelected;
+  const d = DATA[pickerSelected];
+  document.getElementById('modal-title').textContent = 'Replace quantities from report data';
+  document.getElementById('modal-body').textContent = "Switching to this report will recalculate quantities of mapped line items across your proposal. Your current values will be replaced and this can't be undone.";
+  showModalDetail(pickerSelected);
+  openModal('confirm-overlay');
+}
+
+// ─── OUTSIDE CLICK ───
+document.addEventListener('click', e => {
+  const srcWrap = document.getElementById('src-dropdown-wrap');
+  if (srcWrap && !srcWrap.contains(e.target) && sourceDropdownOpen) closeSourceDropdown();
+  ['confirm-overlay','picker-overlay','unsaved-overlay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && e.target === el) closeModal(id);
+  });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['confirm-overlay','picker-overlay','unsaved-overlay'].forEach(id => closeModal(id));
+    closeSourceDropdown();
+  }
+});
+
+// ─── EMPTY REPORT SELECTION (State A) — radio + shared button ───
+let emptyReportSelected = null;
+
+function selectEmptyReportV2(v) {
+  emptyReportSelected = v;
+  document.getElementById('rca-radio-roofr').checked = v === 'roofr';
+  document.getElementById('rca-radio-diy').checked = v === 'diy';
+  document.getElementById('rca-roofr').classList.toggle('selected', v === 'roofr');
+  document.getElementById('rca-diy').classList.toggle('selected', v === 'diy');
+  document.getElementById('rca-attach-btn').disabled = false;
+}
+
+function confirmEmptyAttachV2() {
+  if (!emptyReportSelected) return;
+  attachReport(emptyReportSelected);
+}
+
+// ─── STATE SWITCHER ───
+const STATE_CONFIG = {
+  Loading: { view: 'loading' },
+  A: { view: 'empty-reports' },
+  A2: { view: 'empty-reports-processing' },
+  B: { view: 'empty-no-reports' },
+  C: {
+    view: 'summary',
+    badge: 'report', badgeText: 'Roofr Report',
+    showVersionSelector: true, versionReadonly: true,
+    showViewReport: true,
+    showSwitchReport: false,
+    context: 'Connected to the only report version on this job. Edit values manually if you need to adjust specific measurements.',
+    version: 'roofr',
+  },
+  D: {
+    view: 'summary',
+    badge: 'report', badgeText: 'Roofr Report',
+    showVersionSelector: true, versionReadonly: false,
+    showViewReport: true,
+    showSwitchReport: false,
+    context: 'Connected to a Roofr Report. Switch to a different version or override values manually.',
+    version: 'roofr',
+    srcBtnMeta: 'Mar. 12 · 22.1 sq',
+  },
+  E: {
+    view: 'summary',
+    badge: 'diy', badgeText: 'DIY Report',
+    showVersionSelector: true, versionReadonly: false,
+    showViewReport: true,
+    showSwitchReport: false,
+    context: 'Connected to a DIY Report. Switch to another version, including the original Roofr Report.',
+    version: 'diy',
+    srcBtnMeta: 'Mar. 28 · 23.4 sq',
+  },
+  F: {
+    view: 'summary',
+    badge: 'manual', badgeText: 'Manual',
+    showVersionSelector: false, versionReadonly: false,
+    showViewReport: false,
+    showSwitchReport: true,
+    context: 'Using manually entered measurements. A report is available — attach it to auto-calculate quantities.',
+  },
+  G: {
+    view: 'summary',
+    badge: 'manual', badgeText: 'Manual',
+    showVersionSelector: false, versionReadonly: false,
+    showViewReport: false,
+    showSwitchReport: false,
+    context: 'Using manually entered measurements. No reports exist for this job.',
+  },
+  H: {
+    view: 'summary',
+    badge: 'report', badgeText: 'Roofr Report',
+    showVersionSelector: true, versionReadonly: false,
+    showViewReport: true,
+    showSwitchReport: false,
+    context: 'Connected to a Roofr Report. Switch to a different version or override values manually.',
+    version: 'roofr',
+    srcBtnMeta: 'Mar. 12 · 22.1 sq',
+    showErrorToast: true,
+  },
+  I: {
+    view: 'summary',
+    badge: 'report', badgeText: 'Roofr Report',
+    showVersionSelector: true, versionReadonly: true,
+    showViewReport: true,
+    showSwitchReport: false,
+    context: null,
+    version: 'roofr',
+    locked: true,
+  },
+};
+
+function updateSourceSection(cfg, stateId) {
+  const section = document.getElementById('src-section');
+  const staticEl = document.getElementById('src-static');
+  const dropdownWrap = document.getElementById('src-dropdown-wrap');
+  const viewReportLink = document.getElementById('view-report-link');
+
+  if (cfg.view !== 'summary') {
+    section.classList.add('hidden');
+    return;
+  }
+  section.classList.remove('hidden');
+
+  const REPORT_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  const DIY_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+  const MANUAL_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+  // State G: static display only
+  if (stateId === 'G') {
+    staticEl.classList.remove('hidden');
+    dropdownWrap.classList.add('hidden');
+    viewReportLink.classList.add('hidden');
+    const iconEl = document.getElementById('src-static-icon');
+    iconEl.className = 'src-static-icon manual';
+    iconEl.innerHTML = MANUAL_SVG;
+    document.getElementById('src-static-name').textContent = 'Manual measurements';
+    return;
+  }
+
+  // States C, D, E, F: dropdown
+  staticEl.classList.add('hidden');
+  dropdownWrap.classList.remove('hidden');
+
+  // Set initial source
+  if (cfg.version) {
+    activeSource = cfg.version;
+    activeVersion = cfg.version;
+    updateSrcBtnDisplay(cfg.version);
+  } else if (cfg.badge === 'manual') {
+    activeSource = 'manual';
+    updateSrcBtnDisplay('manual');
+  }
+
+  // View report link
+  if (cfg.showViewReport) {
+    viewReportLink.classList.remove('hidden');
+  } else {
+    viewReportLink.classList.add('hidden');
+  }
+
+  // Readonly state C: disable the button
+  const srcBtn = document.getElementById('src-btn');
+  if (cfg.versionReadonly) {
+    srcBtn.disabled = true;
+  } else {
+    srcBtn.disabled = false;
+  }
+
+  // Build dropdown options based on state
+  if (stateId === 'C') {
+    _currentDropdownOptions = [
+      { value: 'roofr', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report', meta: 'Mar. 12 · 22.1 sq' },
+      { divider: true },
+      { value: 'manual', iconClass: 'add-manual', iconSvg: MANUAL_SVG, name: 'Add manual measurements', meta: '' },
+    ];
+  } else if (stateId === 'D') {
+    _currentDropdownOptions = [
+      { value: 'roofr', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report', meta: 'Mar. 12 · 22.1 sq' },
+      { value: 'roofr-v1', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (1/2)', meta: 'Mar. 12 · 22 sq' },
+      { value: 'roofr-v2', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (2/2)', meta: 'Apr. 2 · 21.5 sq' },
+      { value: 'diy', iconClass: 'diy', iconSvg: DIY_SVG, name: 'DIY Report', meta: 'Mar. 28 · 23.4 sq' },
+      { divider: true },
+      { value: 'manual', iconClass: 'add-manual', iconSvg: MANUAL_SVG, name: 'Add manual measurements', meta: '' },
+    ];
+  } else if (stateId === 'E') {
+    _currentDropdownOptions = [
+      { value: 'roofr', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report', meta: 'Mar. 12 · 22.1 sq' },
+      { value: 'roofr-v1', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (1/2)', meta: 'Mar. 12 · 22 sq' },
+      { value: 'roofr-v2', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (2/2)', meta: 'Apr. 2 · 21.5 sq' },
+      { value: 'diy', iconClass: 'diy', iconSvg: DIY_SVG, name: 'DIY Report', meta: 'Mar. 28 · 23.4 sq' },
+      { divider: true },
+      { value: 'manual', iconClass: 'add-manual', iconSvg: MANUAL_SVG, name: 'Add manual measurements', meta: '' },
+    ];
+  } else if (stateId === 'H' || stateId === 'I') {
+    _currentDropdownOptions = [
+      { value: 'roofr', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report', meta: 'Mar. 12 · 22.1 sq' },
+      { value: 'roofr-v1', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (1/2)', meta: 'Mar. 12 · 22 sq' },
+      { value: 'roofr-v2', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (2/2)', meta: 'Apr. 2 · 21.5 sq' },
+      { value: 'diy', iconClass: 'diy', iconSvg: DIY_SVG, name: 'DIY Report', meta: 'Mar. 28 · 23.4 sq' },
+      { divider: true },
+      { value: 'manual', iconClass: 'add-manual', iconSvg: MANUAL_SVG, name: 'Add manual measurements', meta: '' },
+    ];
+  } else if (stateId === 'F') {
+    _currentDropdownOptions = [
+      { value: 'roofr', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report', meta: 'Mar. 12 · 22.1 sq' },
+      { value: 'roofr-v1', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (1/2)', meta: 'Mar. 12 · 22 sq' },
+      { value: 'roofr-v2', iconClass: 'report', iconSvg: REPORT_SVG, name: 'Roofr Report (2/2)', meta: 'Apr. 2 · 21.5 sq' },
+      { value: 'diy', iconClass: 'diy', iconSvg: DIY_SVG, name: 'DIY Report', meta: 'Mar. 28 · 23.4 sq' },
+      { divider: true },
+      { value: 'manual', iconClass: 'manual', iconSvg: MANUAL_SVG, name: 'Manual measurements', meta: '' },
+    ];
+  }
+
+  rebuildDropdownOptions();
+}
+
+function updateMeasureIcon() {
+  const summaryVisible = !document.getElementById('view-summary').classList.contains('hidden');
+  document.getElementById('rail-measurements').classList.toggle('has-measurements', summaryVisible);
+}
+
+function applyState(id) {
+  const cfg = STATE_CONFIG[id];
+  if (!cfg) return;
+
+  hideCover();
+
+  // Update state bar buttons
+  document.querySelectorAll('.state-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`state-btn-${id}`).classList.add('active');
+
+  closeSourceDropdown();
+
+  closeErrorToast();
+
+  if (cfg.view === 'loading') {
+    showLoadingView();
+    openPanel('measurements');
+
+  } else if (cfg.view === 'empty-reports' || cfg.view === 'empty-reports-processing' || cfg.view === 'empty-no-reports') {
+    showEmptyView();
+    const withReports = cfg.view === 'empty-reports' || cfg.view === 'empty-reports-processing';
+    document.getElementById('empty-with-reports').classList.toggle('hidden', !withReports);
+    document.getElementById('empty-no-reports').classList.toggle('hidden', withReports);
+    // Show/hide in-progress card
+    const processingCard = document.getElementById('rca-processing');
+    if (processingCard) processingCard.classList.toggle('hidden', cfg.view !== 'empty-reports-processing');
+    updateSourceSection(cfg, id);
+
+  } else {
+    // Summary view
+    showSummaryView();
+    closePageToast();
+    exitEditMode();
+
+    // Update source section
+    updateSourceSection(cfg, id);
+
+    // Populate form values
+    if (cfg.version) {
+      populateFormInputs(DATA[cfg.version].fi);
+    }
+
+    // Locked state — hide edit controls
+    const editControls = document.getElementById('meas-edit-controls');
+    if (editControls) editControls.classList.toggle('hidden', !!cfg.locked);
+
+    // Error state — show error toast
+    if (cfg.showErrorToast) showErrorToast();
+  }
+  updateMeasureIcon();
+}
+
+// open measurements panel by default
+openPanel('measurements');
+applyState('D');
+
+// ─── RELATED COLLAPSIBLE ───
+let relatedOpen = true;
+function toggleRelated() {
+  relatedOpen = !relatedOpen;
+  document.getElementById('related-links').classList.toggle('collapsed', !relatedOpen);
+  document.getElementById('related-chevron').classList.toggle('collapsed', !relatedOpen);
+}
+</script>
+</body>
+</html>
