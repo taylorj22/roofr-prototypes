@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal Templates — Roofr Prototype</title>
+<style>
+@font-face { font-family:'Circular Std'; src:url('CircularStd-Book.woff2') format('woff2'); font-weight:400; }
+@font-face { font-family:'Circular Std'; src:url('CircularStd-Medium.woff2') format('woff2'); font-weight:500; }
+
+:root {
+  --text-default:#28373E; --text-highlight:#0B0F12; --text-muted:#6B7980;
+  --text-inactive:#A6A8A9; --text-link:#126DD8; --text-danger:#D13242;
+  --bg-default:#FFFFFF; --bg-secondary:#F4F5F5; --bg-tertiary:#FAFBFB;
+  --bg-quaternary:#EDF0F2; --bg-contrast:#1373E3; --bg-inverted:#0B0F12;
+  --bg-accent-primary:#F3F8FD; --bg-accent-success:#F4FBF6; --bg-accent-danger:#FDF5F6;
+  --bg-overlay:rgba(0,0,0,0.3);
+  --border-default:#E1E4E6; --border-primary:#1373E3; --border-primary-subtle:#89B9F1;
+  --border-success:#28A745; --border-success-subtle:#BFE5C7;
+  --icon-muted:#6B7980; --icon-primary:#126DD8;
+  --blue:#1373E3; --blue-5b:#126DD8; --blue-20b:#0F5CB6; --blue-30b:#0D509F;
+  --blue-5:#F3F8FD; --blue-10:#E7F1FC; --blue-20:#D0E3F9; --blue-50:#89B9F1;
+  --green:#28A745; --green-5:#F4FBF6; --green-30:#BFE5C7; --green-dark:#186429;
+  --orange-10:#FEF3EA; --orange-dark:#915219;
+  --mist:#EDF0F2; --mist-5b:#E1E4E6; --midnight:#0B0F12;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:8px; --radius-xl:16px; --radius-circle:999px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Circular Std',-apple-system,BlinkMacSystemFont,sans-serif;font-weight:400;font-size:16px;color:var(--text-default);background:var(--bg-default);line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+
+/* PROTO NAV */
+.proto-nav{position:fixed;top:0;left:0;right:0;z-index:9999;background:#0B0F12;height:40px;padding:0 16px;display:flex;align-items:center;gap:6px;font-size:11px;overflow-x:auto;flex-shrink:0}
+.proto-label{color:#6B7980;white-space:nowrap;margin-right:2px;flex-shrink:0}
+.proto-sep{width:1px;height:16px;background:#474849;margin:0 8px;flex-shrink:0}
+.proto-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);padding:3px 10px;border-radius:4px;font-family:inherit;font-size:11px;white-space:nowrap;transition:all 150ms ease;flex-shrink:0}
+.proto-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.proto-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* APP SHELL */
+.app-wrap{display:flex;min-height:100vh;padding-top:40px}
+
+/* APP SIDEBAR */
+.app-sidebar{width:248px;flex-shrink:0;background:linear-gradient(90deg,#fff 0%,#EDF0F2 100%);border-right:1px solid var(--border-default);display:flex;flex-direction:column;height:calc(100vh - 40px);position:sticky;top:40px;overflow-y:auto}
+.sidebar-top{padding:16px 20px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-default);flex-shrink:0}
+.sidebar-logo{width:32px;height:32px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-company-name{font-size:13px;font-weight:500;color:var(--text-highlight);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-company-plan{font-size:11px;color:var(--text-muted)}
+.nav-section{padding:14px 0 4px}
+.nav-section-label{padding:0 20px 6px;font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 20px;font-size:14px;color:var(--text-default);cursor:pointer;transition:all 150ms ease;border-left:3px solid transparent}
+.nav-item svg{stroke:var(--icon-muted);flex-shrink:0;transition:stroke 150ms ease}
+.nav-item:hover{color:var(--blue-5b)}
+.nav-item:hover svg{stroke:var(--blue-5b)}
+.nav-item.active{background:var(--bg-accent-primary);border-left-color:var(--blue);padding-left:17px;color:var(--blue-20b);font-weight:500}
+.nav-item.active svg{stroke:var(--blue-20b)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.page-header{padding:28px 40px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-size:24px;font-weight:500;color:var(--text-highlight)}
+.tabs-bar{padding:0 40px;border-bottom:1px solid var(--border-default);display:flex;flex-shrink:0}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;color:var(--text-default);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color 150ms ease;white-space:nowrap}
+.tab:hover{color:var(--blue)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:500;border-radius:var(--radius-circle);cursor:pointer;transition:all 150ms ease;border:1px solid transparent;white-space:nowrap;line-height:1}
+.btn-default{font-size:16px;padding:0 20px;height:44px}
+.btn-sm{font-size:13px;padding:0 14px;height:32px}
+.btn-xs{font-size:12px;padding:0 11px;height:26px}
+.btn-primary{background:var(--bg-contrast);color:#fff}
+.btn-primary:hover{background:var(--blue-5b)}
+.btn-secondary{background:var(--bg-secondary);color:var(--text-default)}
+.btn-secondary:hover{background:var(--mist-5b)}
+.btn-outline{background:#fff;color:var(--text-default);border-color:var(--border-default)}
+.btn-outline:hover{border-color:var(--border-primary-subtle);color:var(--blue-5b)}
+.btn-dark{background:var(--midnight);color:#fff}
+.btn-dark:hover{background:#1c2830}
+
+/* TEMPLATES TWO-PANEL */
+.tpl-page{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+
+/* CONTROLS CONTAINER */
+.tpl-controls{border:1px solid var(--border-default);border-radius:var(--radius-lg);background:var(--bg-default);margin-bottom:20px;overflow:hidden;flex-shrink:0}
+
+/* FOLDER CARDS */
+.folders-section{margin-bottom:24px;flex-shrink:0}
+.folders-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.folders-section-title{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.folders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px}
+.folder-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--border-default);border-radius:var(--radius-lg);cursor:pointer;transition:border-color 150ms ease,background 150ms ease;position:relative;user-select:none}
+.folder-card:hover{border-color:var(--border-primary-subtle);background:var(--bg-accent-primary)}
+.folder-card.active{border-color:var(--border-primary);background:var(--bg-accent-primary)}
+.fc-icon{flex-shrink:0;display:flex;align-items:center}
+.fc-name{flex:1;font-size:13px;font-weight:500;color:var(--text-highlight);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.folder-card.active .fc-name{color:var(--blue-20b)}
+.fc-badge{font-size:11px;color:var(--text-muted);background:var(--bg-secondary);border:1px solid var(--border-default);padding:1px 6px;border-radius:var(--radius-circle);flex-shrink:0;line-height:1.4}
+.folder-card.active .fc-badge{background:var(--blue-10);border-color:var(--blue-20);color:var(--blue-5b)}
+.fc-dots{width:22px;height:22px;border-radius:4px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--icon-muted);flex-shrink:0;padding:0;transition:background 100ms ease}
+.fc-dots:hover{background:var(--mist-5b);color:var(--text-default)}
+.folder-card-new{border-style:dashed;justify-content:center;gap:6px;font-size:13px;color:var(--text-muted)}
+.folder-card-new:hover{background:var(--bg-secondary);border-color:var(--border-primary-subtle);color:var(--blue-5b)}
+.fc-create-input{flex:1;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text-default);background:transparent;min-width:0}
+
+/* FOLDER DROPDOWN */
+.folder-dd-menu{position:absolute;left:0;top:calc(100% + 4px);z-index:300;background:#fff;border:1px solid var(--border-default);border-radius:var(--radius-lg);box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:148px;display:none;overflow:hidden}
+.folder-dd-menu.open{display:block;animation:ddIn 120ms ease}
+
+/* TEMPLATE MAIN */
+.tpl-main{flex:1;overflow-y:auto;padding:20px 32px 32px;display:flex;flex-direction:column;min-width:0}
+
+/* TOOLBAR (inside controls container, no outer border) */
+.tpl-toolbar{display:flex;align-items:center;background:var(--bg-default);flex-shrink:0;height:44px;border-bottom:1px solid var(--border-default)}
+.toolbar-search{display:flex;align-items:center;gap:9px;padding:0 12px;flex:1;min-width:0}
+.toolbar-search input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;color:var(--text-default);background:transparent;min-width:0}
+.toolbar-search input::placeholder{color:var(--text-inactive)}
+.toolbar-div{width:1px;height:100%;background:var(--border-default);flex-shrink:0;align-self:stretch}
+.toolbar-new-btn{display:flex;align-items:center;gap:6px;padding:0 16px;height:100%;font-size:13px;font-weight:500;color:var(--blue-5b);border:none;background:transparent;cursor:pointer;font-family:inherit;transition:background 150ms ease;white-space:nowrap;flex-shrink:0}
+.toolbar-new-btn:hover{background:var(--bg-accent-primary)}
+.toolbar-views{display:flex;align-items:center;padding:0 8px;gap:3px;flex-shrink:0}
+.toolbar-vbtn{width:32px;height:32px;border-radius:var(--radius-md);border:1px solid transparent;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--icon-muted);transition:all 150ms ease;cursor:pointer}
+.toolbar-vbtn:hover{background:var(--bg-secondary);color:var(--text-default)}
+.toolbar-vbtn.active{background:var(--bg-secondary);color:var(--text-default);border-color:var(--border-default)}
+
+
+/* TEMPLATE GRID */
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:16px}
+
+/* TEMPLATE CARD */
+.tpl-card{background:#fff;border:1px solid var(--border-default);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color 150ms ease,box-shadow 150ms ease;display:flex;flex-direction:column;position:relative}
+.tpl-card:hover{border-color:var(--border-primary);box-shadow:0 4px 16px rgba(19,115,227,.1)}
+.tpl-card:hover .card-actions{opacity:1}
+.tpl-card:hover .card-meta{opacity:0}
+
+/* Card thumbnail */
+.card-thumb{height:152px;overflow:hidden;position:relative;flex-shrink:0;background:var(--bg-secondary)}
+.card-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 300ms ease}
+.tpl-card:hover .card-thumb img{transform:scale(1.04)}
+
+/* MO placeholder */
+.card-thumb.mo-area{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-quaternary);gap:7px}
+.mo-area-icon{color:var(--icon-muted)}
+.mo-area-label{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* GBB overlay */
+.gbb-badge{position:absolute;top:8px;left:8px;background:rgba(11,15,18,.6);backdrop-filter:blur(4px);border-radius:var(--radius-circle);padding:3px 8px 3px 6px;display:flex;align-items:center;gap:4px;color:#fff;font-size:11px;font-weight:500}
+
+/* Card body */
+.card-body{padding:14px 15px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.card-name{font-size:14px;font-weight:500;color:var(--text-highlight);line-height:1.3;flex:1}
+.card-dot-btn{width:24px;height:24px;border-radius:4px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;color:var(--icon-muted);flex-shrink:0;margin-top:-1px;transition:background 150ms ease;position:relative}
+.card-dot-btn:hover{background:var(--bg-secondary);color:var(--text-default)}
+.sections-label{font-size:10px;font-weight:500;color:var(--text-inactive);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.sections-row{display:flex;flex-wrap:wrap;gap:4px}
+.sp{display:inline-flex;align-items:center;gap:3px;background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-muted);border-radius:var(--radius-circle);padding:2px 8px;font-size:11px}
+.sp.est{background:var(--bg-accent-success);border-color:var(--border-success-subtle);color:var(--green-dark);font-weight:500}
+
+/* Card footer */
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;min-height:26px;position:relative}
+.card-meta{font-size:11px;color:var(--text-inactive);transition:opacity 150ms ease}
+.card-actions{position:absolute;right:0;display:flex;gap:5px;opacity:0;transition:opacity 150ms ease}
+
+/* LIST VIEW */
+.list-table{width:100%;border-collapse:collapse}
+.list-table th{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;padding:6px 12px;text-align:left;border-bottom:1px solid var(--border-default)}
+.list-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border-default);vertical-align:middle}
+.list-table tbody tr:hover td{background:var(--bg-secondary)}
+.list-table tbody tr:hover .row-actions{opacity:1}
+.list-type-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lti-proposal{background:var(--bg-secondary);color:var(--icon-muted)}
+.lti-mo{background:var(--bg-quaternary);color:var(--icon-muted)}
+.list-name{font-weight:500;color:var(--text-highlight);display:flex;align-items:center;gap:6px}
+.list-sections{display:flex;flex-wrap:wrap;gap:4px}
+.row-actions{opacity:0;transition:opacity 150ms ease;display:flex;gap:5px;justify-content:flex-end}
+
+/* DROPDOWN */
+.dd-wrap{position:relative}
+.dd-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:200;background:#fff;border:1px solid var(--border-default);border-radius:var(--radius-lg);box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:168px;overflow:visible;display:none;animation:ddIn 120ms ease}
+.dd-menu.open{display:block}
+@keyframes ddIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.dd-item{display:flex;align-items:center;gap:8px;padding:8px 13px;font-size:13px;color:var(--text-default);cursor:pointer;transition:background 100ms ease;white-space:nowrap;position:relative}
+.dd-item svg{color:var(--icon-muted);flex-shrink:0}
+.dd-item:hover{background:var(--bg-secondary)}
+.dd-item.danger{color:var(--text-danger)}
+.dd-item.danger svg{color:var(--text-danger)}
+.dd-item.danger:hover{background:var(--bg-accent-danger)}
+.dd-divider{height:1px;background:var(--border-default);margin:3px 0}
+.dd-arrow{margin-left:auto;color:var(--icon-muted)}
+/* submenu */
+.dd-sub{position:absolute;left:calc(100% + 2px);top:-4px;background:#fff;border:1px solid var(--border-default);border-radius:var(--radius-lg);box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:176px;display:none;z-index:300}
+.dd-item:hover .dd-sub{display:block;animation:ddIn 100ms ease}
+.dd-sub-item{display:flex;align-items:center;gap:7px;padding:7px 13px;font-size:13px;color:var(--text-default);cursor:pointer;transition:background 100ms ease;white-space:nowrap}
+.dd-sub-item:hover{background:var(--bg-secondary)}
+.dd-sub-item.cur{color:var(--blue-5b);font-weight:500}
+
+/* DELETE CONFIRM OVERLAY */
+.confirm-overlay{display:none;position:fixed;inset:0;background:var(--bg-overlay);z-index:1000;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex;animation:fadeIn 150ms ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.confirm-dialog{background:#fff;border:1px solid var(--border-default);border-radius:var(--radius-xl);box-shadow:0 8px 32px rgba(0,0,0,.16);padding:28px;width:400px;animation:dialogIn 150ms ease}
+@keyframes dialogIn{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.confirm-dialog h3{font-size:18px;font-weight:500;color:var(--text-highlight);margin-bottom:8px}
+.confirm-dialog p{font-size:14px;color:var(--text-muted);margin-bottom:24px;line-height:1.55}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* PERMISSION GATING */
+body.team .adm{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- PROTO NAV -->
+<nav class="proto-nav">
+  <span class="proto-label">Permission:</span>
+  <button class="proto-btn active" id="pbn-admin" onclick="setRole('admin')">Admin</button>
+  <button class="proto-btn" id="pbn-team" onclick="setRole('team')">Team member</button>
+  <div class="proto-sep"></div>
+  <span class="proto-label">View:</span>
+  <button class="proto-btn active" id="pbn-grid" onclick="setView('grid')">Grid</button>
+  <button class="proto-btn" id="pbn-list" onclick="setView('list')">List</button>
+</nav>
+
+<!-- APP WRAP -->
+<div class="app-wrap">
+
+  <!-- APP SIDEBAR -->
+  <aside class="app-sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div>
+        <div class="sidebar-company-name">Johnson Roofing</div>
+        <div class="sidebar-company-plan">Essentials plan</div>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Jobs</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Performance</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proposals</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Measurements</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>PDF Signer</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Instant Estimator</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Roofr Sites<span style="font-size:10px;font-weight:500;background:var(--bg-accent-primary);border:1px solid var(--border-primary-subtle);color:var(--blue-5b);padding:1px 5px;border-radius:var(--radius-circle);margin-left:4px">Beta</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Manage</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>File Manager</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Catalog</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Automations</div>
+      <div class="nav-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Communications</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="page-header">
+      <h1 class="page-title">Proposals</h1>
+      <button class="btn btn-default btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New proposal
+      </button>
+    </div>
+
+    <div class="tabs-bar">
+      <div class="tab">Proposals</div>
+      <div class="tab">Change orders</div>
+      <div class="tab active">Templates</div>
+      <div class="tab">Settings</div>
+    </div>
+
+    <!-- TEMPLATE PAGE -->
+    <div class="tpl-page">
+      <div class="tpl-main">
+
+        <!-- CONTROLS CONTAINER: toolbar + folder tabs -->
+        <div class="tpl-controls">
+
+          <!-- TOOLBAR (top row) -->
+          <div class="tpl-toolbar">
+            <div class="toolbar-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--icon-muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search templates…" id="tpl-search-input">
+            </div>
+            <div class="toolbar-div adm"></div>
+            <button class="toolbar-new-btn adm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New template
+            </button>
+            <div class="toolbar-div"></div>
+            <div class="toolbar-views">
+              <button class="toolbar-vbtn active" id="vbtn-grid" onclick="setView('grid')" title="Grid">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </button>
+              <button class="toolbar-vbtn" id="vbtn-list" onclick="setView('list')" title="List">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div><!-- /tpl-toolbar -->
+        </div><!-- /tpl-controls -->
+
+        <!-- FOLDER CARDS -->
+        <div class="folders-section">
+          <div class="folders-grid" id="folders-grid">
+
+            <div class="folder-card active" data-folder="all" onclick="handleFolderClick(event,'all',this)">
+              <span class="fc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#126DD8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+              <span class="fc-name">All Templates</span>
+              <span class="fc-badge" id="fc-all">14</span>
+            </div>
+
+            <div class="folder-card" data-folder="proposal" onclick="handleFolderClick(event,'proposal',this)">
+              <span class="fc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="#D0E3F9" stroke="#89B9F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+              <span class="fc-name">Proposal Templates</span>
+              <span class="fc-badge" id="fc-proposal">9</span>
+            </div>
+
+            <div class="folder-card" data-folder="mo" onclick="handleFolderClick(event,'mo',this)">
+              <span class="fc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="#D0E3F9" stroke="#89B9F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+              <span class="fc-name">Material Order Templates</span>
+              <span class="fc-badge" id="fc-mo">5</span>
+            </div>
+
+            <div class="folder-card" data-folder="insurance" onclick="handleFolderClick(event,'insurance',this)" id="fi-insurance">
+              <span class="fc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="#D0E3F9" stroke="#89B9F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+              <span class="fc-name">Insurance</span>
+              <span class="fc-badge" id="fc-insurance">4</span>
+              <button class="fc-dots adm" onclick="toggleFolderMenu(event,'fdm-insurance')" title="Folder options"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+              <div class="folder-dd-menu" id="fdm-insurance">
+                <div class="dd-item" onclick="startRename('fi-insurance','insurance')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Rename</div>
+                <div class="dd-divider"></div>
+                <div class="dd-item danger" onclick="openDeleteConfirm('Insurance',4)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Delete folder</div>
+              </div>
+            </div>
+
+            <div class="folder-card" data-folder="gbb" onclick="handleFolderClick(event,'gbb',this)" id="fi-gbb">
+              <span class="fc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="#D0E3F9" stroke="#89B9F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+              <span class="fc-name">GBB Templates</span>
+              <span class="fc-badge" id="fc-gbb">3</span>
+              <button class="fc-dots adm" onclick="toggleFolderMenu(event,'fdm-gbb')" title="Folder options"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+              <div class="folder-dd-menu" id="fdm-gbb">
+                <div class="dd-item" onclick="startRename('fi-gbb','gbb')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Rename</div>
+                <div class="dd-divider"></div>
+                <div class="dd-item danger" onclick="openDeleteConfirm('GBB Templates',3)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Delete folder</div>
+              </div>
+            </div>
+
+            <!-- New folder card (admin only) -->
+            <div class="folder-card folder-card-new adm" id="new-folder-card" onclick="startNewFolder(this)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New folder
+            </div>
+
+          </div>
+        </div>
+
+        <div class="tpl-grid" id="tpl-grid"></div>
+        <div id="tpl-list" style="display:none"></div>
+      </div><!-- /tpl-main -->
+    </div><!-- /tpl-page -->
+  </div><!-- /main -->
+</div><!-- /app-wrap -->
+
+<!-- DELETE CONFIRM -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-dialog">
+    <h3 id="confirm-title">Delete folder?</h3>
+    <p id="confirm-body"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-sm btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+      <button class="btn btn-sm" style="background:#D13242;color:#fff;border-color:transparent" onclick="closeDeleteConfirm()">Delete folder</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────────
+const T = [
+  { id:1,  type:'proposal', name:'Full Residential Re-roof',       folders:['all','proposal','insurance'], sections:['Cover','Scope of Work','est','Warranty','Terms'], gbb:false, img:'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=520&h=300&fit=crop&auto=format', edited:'Apr 28', uses:34 },
+  { id:2,  type:'proposal', name:'Insurance Claim Package',         folders:['all','proposal','insurance'], sections:['Cover','Damage Summary','est','Photos','Terms'],   gbb:false, img:'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=520&h=300&fit=crop&auto=format', edited:'Mar 14', uses:8  },
+  { id:3,  type:'proposal', name:'Good / Better / Best — Asphalt', folders:['all','proposal','gbb'],       sections:['Cover','About Us','est','Terms'],                  gbb:true,  img:'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=520&h=300&fit=crop&auto=format', edited:'Apr 15', uses:22 },
+  { id:4,  type:'proposal', name:'Commercial Flat Roof',            folders:['all','proposal','gbb'],       sections:['Cover','Scope of Work','est','Warranty'],           gbb:true,  img:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=520&h=300&fit=crop&auto=format', edited:'Apr 22', uses:12 },
+  { id:5,  type:'proposal', name:'New Construction Standard',       folders:['all','proposal','gbb'],       sections:['Cover','Specifications','est','Timeline','Terms'],  gbb:true,  img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=520&h=300&fit=crop&auto=format', edited:'Apr 30', uses:21 },
+  { id:6,  type:'proposal', name:'Repair & Maintenance',            folders:['all','proposal'],             sections:['Cover','Scope of Work','est'],                     gbb:false, img:'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=520&h=300&fit=crop&auto=format', edited:'Apr 10', uses:6  },
+  { id:7,  type:'proposal', name:'Metal Roofing — Residential',     folders:['all','proposal','insurance'], sections:['Cover','About Us','est','Manufacturer Brochure','Terms'], gbb:false, img:'https://images.unsplash.com/photo-1533779183510-8c7d45de064e?w=520&h=300&fit=crop&auto=format', edited:'Apr 18', uses:15 },
+  { id:8,  type:'proposal', name:'Cedar Shake — Residential',       folders:['all','proposal'],             sections:['Cover','About Us','est','Terms'],                  gbb:false, img:'https://images.unsplash.com/photo-1510627489930-0c1b0bfb6785?w=520&h=300&fit=crop&auto=format', edited:'Mar 28', uses:3  },
+  { id:9,  type:'proposal', name:'Insurance — Partial Repair',      folders:['all','proposal','insurance'], sections:['Cover','Damage Summary','est','Photos'],            gbb:false, img:'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=520&h=300&fit=crop&auto=format', edited:'May 1',  uses:9  },
+  { id:10, type:'mo',       name:'Asphalt Shingle — Residential',   folders:['all','mo'],                   sections:['est'],                                             gbb:false, img:null,                                                                                                                   edited:'May 1',  uses:29 },
+  { id:11, type:'mo',       name:'TPO Flat Roof Materials',          folders:['all','mo'],                   sections:['est'],                                             gbb:false, img:null,                                                                                                                   edited:'Apr 25', uses:11 },
+  { id:12, type:'mo',       name:'Metal Roofing Package',            folders:['all','mo'],                   sections:['est'],                                             gbb:false, img:null,                                                                                                                   edited:'Apr 18', uses:7  },
+  { id:13, type:'mo',       name:'Cedar Shake Bundle',               folders:['all','mo'],                   sections:['est'],                                             gbb:false, img:null,                                                                                                                   edited:'Apr 5',  uses:4  },
+  { id:14, type:'mo',       name:'Commercial Flat — Materials',      folders:['all','mo'],                   sections:['est'],                                             gbb:false, img:null,                                                                                                                   edited:'Mar 30', uses:2  },
+];
+
+const FOLDER_LABELS = { all:'All Templates', proposal:'Proposal Templates', mo:'Material Order Templates', insurance:'Insurance', gbb:'GBB Templates' };
+let currentFolder = 'all';
+let currentView = 'grid';
+
+// ── SVG SNIPPETS ─────────────────────────────────────────────────────────────
+const SVG = {
+  pkg: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  pkgSm: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  fileSm: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+  layers: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+  dots: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`,
+  edit: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  dupe: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+  folder: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+  trash: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
+  chev: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+  plus: `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+};
+
+// ── SECTIONS ─────────────────────────────────────────────────────────────────
+function renderSections(sections) {
+  return sections.map(s => s === 'est'
+    ? `<span class="sp est">${SVG.plus} Estimate</span>`
+    : `<span class="sp">${s}</span>`
+  ).join('');
+}
+
+// ── SUBMENU FOLDERS ───────────────────────────────────────────────────────────
+function folderSubItems(tpl) {
+  return Object.entries(FOLDER_LABELS)
+    .filter(([k]) => k !== 'all')
+    .map(([k, label]) => {
+      const cur = tpl.folders.includes(k) ? ' cur' : '';
+      return `<div class="dd-sub-item${cur}" onclick="event.stopPropagation()">${SVG.folder} ${label}</div>`;
+    }).join('');
+}
+
+// ── CARD ──────────────────────────────────────────────────────────────────────
+function renderCard(t) {
+  const thumb = t.type === 'mo'
+    ? `<div class="card-thumb mo-area"><div class="mo-area-icon">${SVG.pkg}</div><div class="mo-area-label">Material Order</div></div>`
+    : `<div class="card-thumb"><img src="${t.img}" alt="${t.name}" loading="lazy">${t.gbb ? `<div class="gbb-badge">${SVG.layers} Good / Better / Best</div>` : ''}</div>`;
+
+  return `
+<div class="tpl-card" data-id="${t.id}" data-type="${t.type}" data-folders="${t.folders.join(',')}">
+  ${thumb}
+  <div class="card-body">
+    <div class="card-name-row">
+      <div class="card-name">${t.name}</div>
+      <div class="dd-wrap adm">
+        <button class="card-dot-btn" onclick="toggleMenu(event,'cdm-${t.id}')">${SVG.dots}</button>
+        <div class="dd-menu" id="cdm-${t.id}">
+          <div class="dd-item">${SVG.edit} Edit</div>
+          <div class="dd-item">${SVG.dupe} Duplicate</div>
+          <div class="dd-item" style="position:relative">
+            ${SVG.folder} Move to folder
+            <span class="dd-arrow" style="margin-left:auto">${SVG.chev}</span>
+            <div class="dd-sub">${folderSubItems(t)}</div>
+          </div>
+          <div class="dd-divider"></div>
+          <div class="dd-item danger">${SVG.trash} Delete</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sections-label">Sections</div>
+      <div class="sections-row">${renderSections(t.sections)}</div>
+    </div>
+    <div class="card-footer">
+      <div class="card-meta">Edited ${t.edited} · ${t.uses} uses</div>
+      <div class="card-actions">
+        <button class="btn btn-xs btn-outline">Edit</button>
+        <button class="btn btn-xs btn-dark">Use</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ── LIST ROW ──────────────────────────────────────────────────────────────────
+function renderRow(t) {
+  const icon = t.type === 'mo'
+    ? `<div class="list-type-icon lti-mo">${SVG.pkgSm}</div>`
+    : `<div class="list-type-icon lti-proposal">${SVG.fileSm}</div>`;
+  const customFolder = t.folders.find(f => f !== 'all' && f !== 'proposal' && f !== 'mo');
+  const folderCell = customFolder ? FOLDER_LABELS[customFolder] || customFolder : '—';
+  return `
+<tr data-id="${t.id}" data-type="${t.type}" data-folders="${t.folders.join(',')}">
+  <td>${icon}</td>
+  <td>
+    <div class="list-name">
+      ${t.name}
+      ${t.gbb ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:400;color:#6B7980">${SVG.layers} GBB</span>` : ''}
+    </div>
+  </td>
+  <td><div class="list-sections">${renderSections(t.sections)}</div></td>
+  <td style="font-size:12px;color:#6B7980">${folderCell}</td>
+  <td style="font-size:12px;color:#6B7980">${t.edited}</td>
+  <td style="font-size:12px;color:#6B7980;text-align:right">${t.uses}</td>
+  <td><div class="row-actions"><button class="btn btn-xs btn-outline">Edit</button><button class="btn btn-xs btn-dark">Use</button></div></td>
+</tr>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const items = T.filter(t => t.folders.includes(currentFolder));
+  document.getElementById('tpl-grid').innerHTML = items.map(renderCard).join('');
+  document.getElementById('tpl-list').innerHTML = items.length
+    ? `<table class="list-table"><thead><tr><th style="width:32px"></th><th>Name</th><th>Sections</th><th>Folder</th><th>Last edited</th><th style="text-align:right">Uses</th><th style="width:110px"></th></tr></thead><tbody>${items.map(renderRow).join('')}</tbody></table>`
+    : '';
+}
+
+// ── FOLDER CLICK ──────────────────────────────────────────────────────────────
+function handleFolderClick(e, folder, el) {
+  if (e.target.closest('.fc-dots') || e.target.closest('.folder-dd-menu')) return;
+  currentFolder = folder;
+  document.querySelectorAll('.folder-card').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── VIEW ──────────────────────────────────────────────────────────────────────
+function setView(v) {
+  currentView = v;
+  const g = document.getElementById('tpl-grid');
+  const l = document.getElementById('tpl-list');
+  const bg = document.getElementById('vbtn-grid');
+  const bl = document.getElementById('vbtn-list');
+  const ng = document.getElementById('pbn-grid');
+  const nl = document.getElementById('pbn-list');
+  if (v === 'grid') {
+    g.style.display = ''; l.style.display = 'none';
+    bg.classList.add('active'); bl.classList.remove('active');
+    ng.classList.add('active'); nl.classList.remove('active');
+  } else {
+    g.style.display = 'none'; l.style.display = '';
+    bg.classList.remove('active'); bl.classList.add('active');
+    ng.classList.remove('active'); nl.classList.add('active');
+  }
+}
+
+// ── ROLE ──────────────────────────────────────────────────────────────────────
+function setRole(r) {
+  document.body.classList.toggle('team', r === 'team');
+  document.getElementById('pbn-admin').classList.toggle('active', r === 'admin');
+  document.getElementById('pbn-team').classList.toggle('active', r === 'team');
+}
+
+// ── MENUS ─────────────────────────────────────────────────────────────────────
+function toggleMenu(e, id) {
+  e.stopPropagation();
+  const m = document.getElementById(id);
+  const wasOpen = m.classList.contains('open');
+  closeAll();
+  if (!wasOpen) m.classList.add('open');
+}
+function toggleFolderMenu(e, id) {
+  e.stopPropagation();
+  const m = document.getElementById(id);
+  const wasOpen = m.classList.contains('open');
+  closeAll();
+  if (!wasOpen) m.classList.add('open');
+}
+function closeAll() {
+  document.querySelectorAll('.dd-menu.open,.folder-dd-menu.open').forEach(m => m.classList.remove('open'));
+}
+document.addEventListener('click', closeAll);
+
+// ── NEW FOLDER ────────────────────────────────────────────────────────────────
+function startNewFolder(card) {
+  card.classList.remove('folder-card-new');
+  card.classList.add('folder-card-creating');
+  card.style.borderStyle = 'solid';
+  card.style.borderColor = 'var(--border-primary)';
+  card.innerHTML = `
+    <span class="fc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="#D0E3F9" stroke="#89B9F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+    <input class="fc-create-input" id="fc-create-inp" type="text" placeholder="Folder name" autocomplete="off">`;
+  const inp = card.querySelector('#fc-create-inp');
+  inp.focus();
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { const v = inp.value.trim(); if (v) createFolder(v, card); else resetNewFolderCard(card); }
+    if (e.key === 'Escape') resetNewFolderCard(card);
+  });
+  inp.addEventListener('blur', () => setTimeout(() => { const v = inp.value.trim(); if (v) createFolder(v, card); else resetNewFolderCard(card); }, 120));
+}
+function resetNewFolderCard(card) {
+  card.className = 'folder-card folder-card-new adm';
+  card.style.cssText = '';
+  card.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New folder`;
+  card.onclick = () => startNewFolder(card);
+}
+function createFolder(name, newCard) {
+  const slug = 'f-' + name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  FOLDER_LABELS[slug] = name;
+  resetNewFolderCard(newCard);
+
+  const el = document.createElement('div');
+  el.className = 'folder-card adm';
+  el.dataset.folder = slug;
+  el.id = 'fi-' + slug;
+  el.innerHTML = `
+    <span class="fc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="#D0E3F9" stroke="#89B9F1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+    <span class="fc-name">${name}</span>
+    <span class="fc-badge">0</span>
+    <button class="fc-dots adm" onclick="toggleFolderMenu(event,'fdm-${slug}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+    <div class="folder-dd-menu" id="fdm-${slug}">
+      <div class="dd-item" onclick="startRename('fi-${slug}','${slug}')">${SVG.edit} Rename</div>
+      <div class="dd-divider"></div>
+      <div class="dd-item danger" onclick="openDeleteConfirm('${name}',0)">${SVG.trash} Delete folder</div>
+    </div>`;
+  el.addEventListener('click', (e) => handleFolderClick(e, slug, el));
+  document.getElementById('new-folder-card').before(el);
+}
+
+// ── RENAME ────────────────────────────────────────────────────────────────────
+function startRename(elId, folderId) {
+  closeAll();
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const nameEl = el.querySelector('.fc-name');
+  const inp = document.createElement('input');
+  inp.style.cssText = 'border:1px solid #1373E3;border-radius:4px;padding:2px 7px;font-size:13px;font-family:inherit;width:100%;outline:none;box-shadow:0 0 0 2px #89B9F1;min-width:0';
+  inp.value = nameEl.textContent;
+  nameEl.style.display = 'none';
+  nameEl.parentNode.insertBefore(inp, nameEl.nextSibling);
+  inp.focus(); inp.select();
+  const done = () => {
+    const v = inp.value.trim();
+    if (v) { nameEl.textContent = v; FOLDER_LABELS[folderId] = v; }
+    inp.remove(); nameEl.style.display = '';
+  };
+  inp.addEventListener('blur', done);
+  inp.addEventListener('keydown', e => { if (e.key==='Enter') { done(); } if (e.key==='Escape') { inp.remove(); nameEl.style.display=''; } });
+}
+
+// ── DELETE CONFIRM ────────────────────────────────────────────────────────────
+function openDeleteConfirm(name, count) {
+  closeAll();
+  document.getElementById('confirm-title').textContent = `Delete "${name}"?`;
+  document.getElementById('confirm-body').textContent = count > 0
+    ? `${count} template${count !== 1 ? 's' : ''} in this folder won't be deleted — they'll move to All Templates.`
+    : 'This folder is empty. This can\'t be undone.';
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeDeleteConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+}
+document.getElementById('confirm-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeDeleteConfirm();
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
