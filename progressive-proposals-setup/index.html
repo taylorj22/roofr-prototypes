@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposals Progressive Onboarding — Roofr Prototype</title>
+  <style>
+    @font-face { font-family: 'Circular Std'; src: url('CircularStd-Book.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Circular Std'; src: url('CircularStd-Medium.woff2') format('woff2'); font-weight: 500; }
+
+    :root {
+      --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 16px; --radius-circle: 999px;
+      --sp-xxxs: 4px; --sp-xxs: 6px; --sp-xs: 8px; --sp-sm: 10px; --sp-md: 12px;
+      --sp-lg: 16px; --sp-xl: 20px; --sp-xxl: 24px; --sp-xxxl: 32px;
+      --page-xs: 8px; --page-sm: 16px; --page-md: 24px; --page-lg: 32px; --page-xl: 40px;
+      --h1: 40px; --h2: 24px; --h3: 20px; --h4: 18px; --body: 16px; --small: 13px; --smaller: 11px;
+
+      --text-default: #28373E; --text-highlight: #0B0F12; --text-muted: #6B7980;
+      --text-inactive: #A6A8A9; --text-link: #126DD8; --text-link-hover: #0D509F;
+      --text-inverted: #FFFFFF; --text-danger: #D13242; --text-success: #269F42;
+
+      --bg-default: #FFFFFF; --bg-secondary: #F4F5F5; --bg-tertiary: #FAFBFB;
+      --bg-quaternary: #EDF0F2; --bg-contrast: #1373E3;
+      --bg-overlay: rgba(0,0,0,0.35); --bg-accent-primary: #F3F8FD;
+      --bg-accent-success: #F4FBF6;
+
+      --border-default: #E1E4E6; --border-primary: #1373E3; --border-primary-subtle: #89B9F1;
+      --border-success: #28A745; --border-success-subtle: #BFE5C7;
+
+      --icon-muted: #6B7980; --icon-primary: #126DD8; --icon-success: #28A745;
+
+      --btn-secondary: #F4F5F5; --btn-secondary-hover: #E1E4E6;
+      --btn-outline-hover: #E7F1FC; --btn-alt: #E7F1FC; --btn-alt-hover: #B8D5F7;
+
+      --card-hover-fill: #F3F8FD; --card-active-fill: #F3F8FD;
+      --card-hover-border: #1373E3; --card-active-border: #89B9F1;
+
+      --blue: #1373E3; --blue-5b: #126DD8; --blue-20b: #0F5CB6;
+      --blue-5: #F3F8FD; --blue-10: #E7F1FC; --blue-20: #D0E3F9;
+      --mist: #EDF0F2; --mist-5b: #E1E4E6;
+      --green-5: #F4FBF6; --green-20: #D4EDDA; --green-30: #BFE5C7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400; background: var(--bg-default);
+      color: var(--text-default); font-size: var(--body); line-height: 1.5;
+    }
+
+    /* ── Proto nav ── */
+    .proto-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+      background: #0B0F12; padding: 0 16px;
+      display: flex; align-items: center; gap: 6px; height: 38px;
+      font-size: 11px; overflow-x: auto; flex-shrink: 0;
+    }
+    .proto-nav span { color: #6B7980; white-space: nowrap; margin-right: 4px; flex-shrink: 0; }
+    .proto-btn {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.6); padding: 3px 10px; border-radius: 4px;
+      cursor: pointer; font-family: inherit; font-size: 11px; white-space: nowrap;
+      transition: all 150ms ease; flex-shrink: 0;
+    }
+    .proto-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .proto-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    /* ── Screen container ── */
+    .screen { display: none; min-height: 100vh; padding-top: 38px; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ── App shell ── */
+    .app-shell { display: flex; flex: 1; min-height: 0; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 248px; flex-shrink: 0;
+      background: linear-gradient(90deg, #ffffff 0%, #edf0f2 100%);
+      border-right: 1px solid var(--border-default);
+      display: flex; flex-direction: column;
+      height: calc(100vh - 38px); position: sticky; top: 38px; overflow-y: auto;
+    }
+    .sidebar-logo-area {
+      padding: 16px 24px 12px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border-default);
+      flex-shrink: 0;
+    }
+    .sidebar-logo-mark {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--blue); display: flex; align-items: center; justify-content: center;
+    }
+    .sidebar-logo-mark svg { color: #fff; }
+    .sidebar-company { flex: 1; min-width: 0; }
+    .sidebar-company-name {
+      font-size: 13px; font-weight: 500; color: var(--text-highlight);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sidebar-company-plan { font-size: 11px; color: var(--text-muted); }
+
+    /* Tag / Badge — Shingle Design System, Tags component */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      height: 24px; padding: 2px 8px; border-radius: 4px; /* --radius-sm */
+      font-size: 13px; font-weight: 500; line-height: 1.5;
+      white-space: nowrap; flex-shrink: 0; border: 1px solid transparent;
+    }
+    .badge svg { flex-shrink: 0; }
+    .badge-yellow { background: #FFF5DC; color: #5D4C1D; border-color: #FFF5DC; }
+    .badge-blue { background: #E7F1FC; color: #126DD8; border-color: #E7F1FC; }
+
+    /* Nav inline badge (e.g. Beta) */
+    .nav-badge {
+      margin-left: auto; display: inline-flex; align-items: center;
+      height: 18px; padding: 0 5px; border-radius: 4px;
+      background: #E7F1FC; color: #126DD8; font-size: 10px; font-weight: 500;
+    }
+
+    .nav-section { padding: 16px 0 4px; }
+    .nav-section-label {
+      padding: 0 24px 6px;
+      font-size: 11px; font-weight: 500; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 24px; font-size: 15px; font-weight: 400;
+      color: var(--text-default); cursor: pointer;
+      transition: color 150ms ease, background 150ms ease;
+      text-decoration: none; border-left: 3px solid transparent;
+    }
+    .nav-item svg { flex-shrink: 0; stroke: var(--icon-muted); transition: stroke 150ms ease; }
+    .nav-item:hover { color: var(--blue-5b); }
+    .nav-item:hover svg { stroke: var(--blue-5b); }
+    .nav-item.active {
+      background: #f3f8fd; border-left-color: var(--blue);
+      padding-left: 21px; color: var(--blue-20b);
+    }
+    .nav-item.active svg { stroke: var(--blue-20b); }
+    .sidebar-footer { margin-top: auto; padding-bottom: 12px; border-top: 1px solid var(--border-default); }
+
+    /* ── Main pane ── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: auto; background: #fff; }
+
+    /* ── Proposals page layout ── */
+    .proposals-header {
+      margin: 40px 40px 12px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .page-title { font-size: var(--h2); font-weight: 500; color: var(--text-highlight); }
+
+    .tabs-bar {
+      margin: 0 40px 24px;
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+    }
+    .tab {
+      padding: 12px 16px; font-size: var(--small); font-weight: 500;
+      color: var(--text-default); cursor: pointer; position: relative;
+      transition: color 150ms ease; border-bottom: 3px solid transparent; margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--blue); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: inherit; font-weight: 500;
+      border-radius: var(--radius-circle); cursor: pointer;
+      transition: all 150ms ease; border: 1px solid transparent;
+      white-space: nowrap; text-decoration: none;
+    }
+    .btn-default { font-size: var(--body); padding: 0 23px; height: 44px; }
+    .btn-sm { font-size: var(--small); padding: 0 16px; height: 32px; }
+    .btn-primary { background: var(--bg-contrast); color: #fff; border-color: transparent; }
+    .btn-primary:hover { background: var(--blue-5b); }
+    .btn-alt { background: var(--btn-alt); color: var(--text-link); border-color: transparent; }
+    .btn-alt:hover { background: var(--btn-alt-hover); }
+    .btn-outline { background: #fff; color: var(--text-link); border-color: var(--border-primary); }
+    .btn-outline:hover { background: var(--btn-outline-hover); }
+    .btn-secondary { background: var(--btn-secondary); color: var(--text-link); }
+    .btn-secondary:hover { background: var(--btn-secondary-hover); }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: none; }
+    .btn-ghost:hover { color: var(--text-default); background: var(--bg-secondary); }
+    .btn-link { background: none; border: none; color: var(--text-link); padding: 0; height: auto; font-size: var(--small); font-family: inherit; cursor: pointer; font-weight: 500; }
+    .btn-link:hover { color: var(--text-link-hover); text-decoration: underline; }
+    .btn svg { flex-shrink: 0; }
+
+    /* ── Pathway empty state ── */
+    .pathway-wrap {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; padding: 56px 40px 48px;
+    }
+    .pathway-header { text-align: center; margin-bottom: 32px; }
+    .pathway-header h3 { font-size: 20px; font-weight: 500; color: #0B0F12; margin-bottom: 8px; line-height: 1.2; }
+    .pathway-header p { font-size: 16px; color: #6B7980; }
+    .pathway-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; width: 100%; max-width: 880px;
+    }
+    .pathway-card {
+      background: #fff; border: 1px solid #E1E4E6; border-radius: 8px;
+      padding: 24px; display: flex; flex-direction: column;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .pathway-card:hover { border-color: #1373E3; box-shadow: 0 2px 8px rgba(19,115,227,0.08); }
+    .pathway-card-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: #F4F5F5; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px; color: #6B7980; flex-shrink: 0;
+    }
+    .pathway-card-icon.accent { background: #E7F1FC; color: #126DD8; }
+    .pathway-card h4 { font-size: 16px; font-weight: 500; color: #0B0F12; margin-bottom: 8px; }
+    .pathway-card p { font-size: 13px; color: #6B7980; line-height: 1.6; flex: 1; }
+    .pathway-card-action { margin-top: 20px; }
+    .pathway-info {
+      margin-top: 28px; display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: #A6A8A9;
+    }
+
+    /* ── Questionnaire overlay ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 40px;
+      opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    /* Modal shell — cards-modals.md Modal spec */
+    .q-modal {
+      background: #fff; /* --components-card-default-fill */
+      border-radius: 16px; /* --components-card-radius-md */
+      box-shadow: 0 4px 36px rgba(0,0,0,0.1);
+      width: 100%; max-width: 560px;
+      transform: translateY(8px); transition: transform 200ms ease;
+      overflow: hidden; position: relative;
+    }
+    .overlay.open .q-modal { transform: translateY(0); }
+
+    /* Close button — Button Secondary icon-only small (32×32) */
+    .q-close-btn {
+      position: absolute; top: 16px; right: 16px; z-index: 10;
+      width: 32px; height: 32px;
+      background: #F4F5F5; /* --components-button-secondary */
+      border: none; border-radius: 999px; cursor: pointer;
+      color: #126DD8; /* --text-link */
+      display: flex; align-items: center; justify-content: center;
+      transition: background 150ms ease; flex-shrink: 0;
+    }
+    .q-close-btn:hover { background: #E1E4E6; /* --components-button-secondary-hover */ }
+
+    /* Segmented progress — custom pattern, system tokens */
+    .q-progress-segs { display: flex; gap: 6px; padding: 24px 32px 0; }
+    .q-seg { flex: 1; height: 4px; border-radius: 999px; background: #E1E4E6; transition: background 300ms ease; }
+    .q-seg.filled { background: #1373E3; }
+
+    /* Step content */
+    .q-body { padding: 0 32px 0; }
+    .q-step { display: none; }
+    .q-step.active { display: block; animation: fadeIn 180ms ease forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:translateX(0); } }
+    .q-step-num {
+      font-size: 11px; font-weight: 500; color: #6B7980;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-top: 16px; margin-bottom: 8px;
+    }
+    .q-question {
+      font-size: 24px; /* --Sizes-H2 */ font-weight: 500; color: #0B0F12;
+      line-height: 1.2; margin-bottom: 6px;
+    }
+    .q-subtitle {
+      font-size: 16px; font-weight: 400; color: #6B7980;
+      margin-bottom: 16px; line-height: 1.5;
+    }
+
+    /* Option cards — card-select-product.md */
+    .q-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+    .q-options.single { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .q-option {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px; /* --components-card-padding-sm */
+      background: #fff; /* --components-card-default-fill */
+      border: 1px solid #E1E4E6; /* --components-card-default-border */
+      border-radius: 8px; /* --components-card-radius-sm */
+      cursor: pointer; user-select: none; text-align: left;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .q-option:hover { background: #F3F8FD; border-color: #1373E3; }
+    .q-option.sel { background: #F3F8FD; border-color: #89B9F1; } /* active-fill + active-border */
+    .q-opt-emoji { font-size: 18px; line-height: 1; flex-shrink: 0; }
+    .q-opt-content { flex: 1; min-width: 0; }
+    .q-opt-label { font-size: 16px; font-weight: 500; color: #0B0F12; line-height: 1.4; }
+    .q-opt-desc { font-size: 13px; font-weight: 400; color: #6B7980; margin-top: 2px; line-height: 1.4; }
+
+    /* Checkbox — checkbox-radio.md tokens */
+    .q-checkbox {
+      width: 20px; height: 20px; border-radius: 4px; /* --radius-sm */
+      border: 1.5px solid #E1E4E6; background: #fff; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 150ms ease;
+    }
+    .q-option.sel .q-checkbox { background: #126DD8; border-color: #1373E3; }
+    .q-option.sel .q-checkbox::after {
+      content: ''; display: block; width: 10px; height: 6px;
+      border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translate(1px,-1px);
+    }
+
+    /* Radio — checkbox-radio.md tokens */
+    .q-radio {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 1.5px solid #E1E4E6; background: #fff; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 150ms ease;
+    }
+    .q-option.sel .q-radio { background: #126DD8; border-color: #1373E3; }
+    .q-option.sel .q-radio::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; display: block; }
+
+    /* Footer — modal footer spec: divider + 32px sides + 24px bottom */
+    .q-footer {
+      border-top: 1px solid #E1E4E6;
+      padding: 16px 32px 36px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Back — Button Link */
+    .q-back-btn {
+      display: flex; align-items: center; gap: 4px;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 16px; font-weight: 400;
+      color: #126DD8; padding: 0; transition: color 150ms ease;
+    }
+    .q-back-btn:hover { color: #0D509F; text-decoration: underline; }
+    .q-back-btn.hidden { display: none; }
+
+    /* Continue — Button Primary default (44px) */
+    .q-continue-btn {
+      height: 44px; padding: 0 24px;
+      background: #1373E3; color: #fff;
+      border: none; border-radius: 999px; cursor: pointer;
+      font-family: inherit; font-size: 16px; font-weight: 500;
+      transition: background 150ms ease;
+    }
+    .q-continue-btn:hover:not(.disabled) { background: #126DD8; }
+    .q-continue-btn.disabled { background: #89B9F1; cursor: not-allowed; }
+
+    /* Intro step */
+    .q-intro { text-align: left; padding: 28px 0 24px; }
+    .q-intro-title { font-size: 22px; font-weight: 500; color: #0B0F12; line-height: 1.3; margin: 0 0 12px; }
+    .q-intro-body { font-size: 16px; color: #6B7980; line-height: 1.6; margin: 0 0 28px; }
+    .q-intro-chips { display: flex; flex-direction: column; gap: 10px; }
+    .q-intro-chip { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #0B0F12; }
+    .q-intro-chip svg { flex-shrink: 0; color: #1373E3; }
+
+    /* Skip button — blue link */
+    .q-skip-btn {
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 16px; font-weight: 400;
+      color: #126DD8; padding: 0; transition: color 150ms ease;
+    }
+    .q-skip-btn:hover { color: #0D509F; text-decoration: underline; }
+    .q-skip-btn.hidden { display: none; }
+
+    /* ── Template selection ── */
+    .template-banner {
+      margin: 0 40px 20px;
+      background: var(--bg-tertiary); border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg); padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .template-banner-icon { color: var(--text-muted); flex-shrink: 0; margin-top: 1px; }
+    .template-banner-text { flex: 1; }
+    .template-banner-text h4 { font-size: var(--body); font-weight: 500; color: var(--text-default); margin-bottom: 2px; }
+    .template-banner-text p { font-size: var(--small); color: var(--text-muted); }
+    .template-banner-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+    .page-content { flex: 1; overflow-y: auto; padding: 0 40px 40px; }
+    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; }
+
+    .tpl-card {
+      background: #fff; border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg); padding: 16px;
+      cursor: pointer; transition: all 200ms ease;
+    }
+    .tpl-card:hover { border-color: var(--card-hover-border); background: var(--card-hover-fill); }
+    .tpl-card.sel { border-color: var(--card-active-border); background: var(--card-active-fill); }
+    .tpl-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .tpl-card-icon {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      background: var(--bg-secondary); display: flex; align-items: center; justify-content: center;
+      color: var(--icon-primary);
+    }
+    .tpl-checkbox {
+      width: 20px; height: 20px; border-radius: 4px;
+      border: 1.5px solid var(--border-default); background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 150ms ease;
+    }
+    .tpl-card.sel .tpl-checkbox { background: var(--blue); border-color: var(--blue); }
+    .tpl-card.sel .tpl-checkbox::after {
+      content: ''; display: block; width: 10px; height: 7px;
+      border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translate(1px,-1px);
+    }
+    .tpl-card h4 { font-size: var(--small); font-weight: 500; color: var(--text-highlight); margin-bottom: 4px; }
+    .tpl-card p { font-size: var(--smaller); color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-circle); font-size: var(--smaller); font-weight: 500; }
+    .tag-blue { background: #D0E3F9; color: #0B4588; }
+    .tag-green { background: #D4EDDA; color: #186429; }
+    .tag-muted { background: var(--bg-quaternary); color: #474849; }
+    .tag-orange { background: #FCE7D4; color: #915219; }
+
+    /* ── Seeding overlay ── */
+    .seeding-overlay {
+      position: fixed; inset: 0; background: rgba(255,255,255,0.96);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; flex-direction: column; gap: 20px;
+      opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+    }
+    .seeding-overlay.open { opacity: 1; pointer-events: all; }
+    .seeding-spinner {
+      width: 44px; height: 44px; border: 3px solid var(--border-default);
+      border-top-color: var(--blue); border-radius: 50%;
+      animation: spin 700ms linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .seeding-text { text-align: center; }
+    .seeding-text h3 { font-size: var(--h4); font-weight: 500; color: var(--text-highlight); margin-bottom: 4px; }
+    .seeding-text p { font-size: var(--small); color: var(--text-muted); }
+    .seeding-items { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .seeding-item { display: flex; align-items: center; gap: 10px; font-size: var(--small); color: var(--text-muted); }
+    .seeding-item.done { color: var(--text-success); }
+
+    /* ── Toast ── */
+    .toast-container { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); z-index: 5000; pointer-events: none; }
+    .toast {
+      width: 306px; padding: 12px 16px; border: 1px solid var(--border-success-subtle);
+      border-radius: var(--radius-lg); background: var(--bg-accent-success);
+      display: flex; align-items: flex-start; gap: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); pointer-events: all;
+      transform: translateY(-8px); opacity: 0;
+      transition: transform 150ms ease-out, opacity 150ms ease-out;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-icon { color: var(--icon-success); flex-shrink: 0; margin-top: 1px; }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: var(--body); font-weight: 500; color: var(--text-highlight); }
+    .toast-msg { font-size: var(--small); color: var(--text-muted); }
+    .toast-close { background: none; border: none; cursor: pointer; color: var(--icon-muted); flex-shrink: 0; padding: 0; display: flex; }
+
+    /* ── Template gallery ── */
+    .tpl-gallery-wrap { flex: 1; overflow-y: auto; padding: 0 40px 40px; }
+    .tpl-toolbar {
+      display: flex; align-items: center;
+      border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+      background: #fff; margin-bottom: 20px; overflow: hidden;
+    }
+    .tpl-search {
+      display: flex; align-items: center; gap: 8px;
+      flex: 1; height: 40px; padding: 0 14px;
+      font-size: var(--small); color: var(--text-muted); cursor: text;
+    }
+    .tpl-toolbar-sep { width: 1px; height: 22px; background: var(--border-default); flex-shrink: 0; }
+    .tpl-sort {
+      display: flex; align-items: center; gap: 6px;
+      height: 40px; padding: 0 16px; background: none; border: none; font-family: inherit;
+      font-size: var(--small); font-weight: 500; color: var(--text-link); cursor: pointer; white-space: nowrap;
+    }
+    .tpl-sort:hover { color: var(--text-link-hover); }
+    .tpl-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: var(--small); color: var(--text-muted); margin-bottom: 20px; }
+    .tpl-breadcrumb-sep { color: var(--text-inactive); }
+    .tpl-breadcrumb-active { color: var(--text-link); font-weight: 500; }
+    .tpl-thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
+    .tpl-new-card {
+      border: 1.5px dashed var(--border-default); border-radius: 8px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      cursor: pointer; color: var(--text-link); font-size: var(--small); font-weight: 500;
+      transition: border-color 150ms, background 150ms; min-height: 180px;
+    }
+    .tpl-new-card:hover { border-color: var(--icon-primary); background: #F3F8FD; }
+    .tpl-thumb-card {
+      border: 1px solid var(--border-default); border-radius: 8px;
+      overflow: hidden; background: #fff; cursor: pointer;
+      transition: box-shadow 150ms ease; opacity: 0;
+    }
+    .tpl-thumb-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    .screen.active .tpl-thumb-card { animation: tplCardIn 280ms ease forwards; }
+    .screen.active .tpl-thumb-card:nth-child(2) { animation-delay: 60ms; }
+    .screen.active .tpl-thumb-card:nth-child(3) { animation-delay: 120ms; }
+    .screen.active .tpl-thumb-card:nth-child(4) { animation-delay: 180ms; }
+    .screen.active .tpl-thumb-card:nth-child(5) { animation-delay: 240ms; }
+    @keyframes tplCardIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .tpl-thumb-img { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--bg-secondary); }
+    .tpl-thumb-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tpl-jumpstart-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 999px; padding: 3px 8px 3px 5px;
+      display: flex; align-items: center; gap: 3px;
+      font-size: 11px; font-weight: 500; color: #0B0F12;
+      backdrop-filter: blur(4px);
+    }
+    .tpl-thumb-footer { padding: 10px 12px 12px; }
+    .tpl-thumb-name-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .tpl-thumb-name { font-size: var(--small); font-weight: 500; color: var(--text-default); line-height: 1.35; flex: 1; }
+    .tpl-thumb-dots {
+      background: none; border: none; cursor: pointer; color: var(--text-link);
+      padding: 0; display: flex; align-items: center; flex-shrink: 0;
+    }
+    .tpl-thumb-dots:hover { color: var(--text-link-hover); }
+
+    /* ── Proposal builder ── */
+    .proposal-shell { flex: 1; display: flex; overflow: hidden; }
+    .proposal-main { flex: 1; background: var(--bg-secondary); padding: 32px; overflow-y: auto; }
+    .proposal-canvas {
+      background: #fff; border-radius: var(--radius-lg); padding: 40px;
+      max-width: 720px; margin: 0 auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .proposal-header-block { padding-bottom: 20px; border-bottom: 1px solid var(--border-default); margin-bottom: 24px; }
+    .proposal-header-block h2 { font-size: var(--h3); font-weight: 500; color: var(--text-highlight); }
+    .proposal-header-block p { font-size: var(--small); color: var(--text-muted); margin-top: 2px; }
+    .line-section-title { font-size: var(--small); font-weight: 500; color: var(--text-highlight); margin-bottom: 8px; }
+    .line-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    .line-table th { text-align: left; font-size: var(--smaller); font-weight: 500; color: var(--text-muted); padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border-default); }
+    .line-table td { padding: 10px 12px; border: 1px solid var(--border-default); border-top: none; font-size: var(--small); color: var(--text-default); }
+    .line-table td:first-child { font-weight: 500; color: var(--text-highlight); }
+    .line-table tr:last-child td { border-bottom: 1px solid var(--border-default); }
+    .line-table tr:hover td { background: var(--bg-tertiary); }
+    .add-line {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border: 1px dashed var(--border-primary);
+      border-radius: var(--radius-md); cursor: pointer; background: #fff;
+      color: var(--text-link); font-size: var(--small); font-weight: 500;
+      transition: all 150ms ease; margin-top: 6px;
+    }
+    .add-line:hover { background: var(--bg-accent-primary); }
+    .line-section { margin-bottom: 24px; }
+    .proposal-total { display: flex; justify-content: flex-end; padding-top: 16px; border-top: 1px solid var(--border-default); }
+    .total-box { text-align: right; }
+    .total-label { font-size: var(--small); color: var(--text-muted); }
+    .total-amount { font-size: var(--h3); font-weight: 500; color: var(--text-highlight); }
+
+    .proposal-sidebar {
+      width: 264px; flex-shrink: 0; background: #fff;
+      border-left: 1px solid var(--border-default); padding: 20px; overflow-y: auto;
+    }
+    .proposal-sidebar h4 { font-size: var(--small); font-weight: 500; color: var(--text-highlight); margin-bottom: 4px; }
+    .proposal-sidebar .sidebar-sub { font-size: var(--smaller); color: var(--text-muted); margin-bottom: 14px; }
+    .catalog-sug {
+      border: 1px solid var(--border-default); border-radius: var(--radius-lg);
+      padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 150ms ease;
+    }
+    .catalog-sug:hover { border-color: var(--border-primary); background: var(--bg-accent-primary); }
+    .catalog-sug h5 { font-size: var(--smaller); font-weight: 500; color: var(--text-highlight); margin-bottom: 1px; }
+    .catalog-sug p { font-size: var(--smaller); color: var(--text-muted); }
+
+    /* ── Catalog educated state ── */
+    .catalog-hint {
+      margin: 0 40px 20px;
+      background: var(--bg-accent-primary); border: 1px solid var(--border-primary-subtle);
+      border-radius: var(--radius-lg); padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .catalog-hint-icon { color: var(--icon-primary); flex-shrink: 0; margin-top: 2px; }
+    .catalog-hint-body { flex: 1; }
+    .catalog-hint-body h4 { font-size: var(--body); font-weight: 500; color: var(--text-highlight); margin-bottom: 4px; }
+    .catalog-hint-body p { font-size: var(--small); color: var(--text-muted); line-height: 1.6; }
+    .catalog-hint-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .catalog-hint-close {
+      background: none; border: none; cursor: pointer; color: var(--icon-muted);
+      flex-shrink: 0; padding: 0; display: flex; transition: color 150ms ease;
+    }
+    .catalog-hint-close:hover { color: var(--text-default); }
+
+    .promo-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 40px 20px; }
+    .promo-card {
+      border: 1px solid var(--border-default); border-radius: var(--radius-lg);
+      padding: 16px; background: #fff; display: flex; align-items: flex-start; gap: 12px;
+      cursor: pointer; transition: all 150ms ease;
+    }
+    .promo-card:hover { border-color: var(--border-primary); background: var(--card-hover-fill); }
+    .promo-card-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .promo-card-icon.blue { background: var(--blue-10); color: var(--icon-primary); }
+    .promo-card-icon.green { background: var(--green-20); color: var(--icon-success); }
+    .promo-card h4 { font-size: var(--small); font-weight: 500; color: var(--text-highlight); margin-bottom: 3px; }
+    .promo-card p { font-size: var(--smaller); color: var(--text-muted); line-height: 1.5; }
+
+    /* ── Catalog table ── */
+    .catalog-table-wrap { margin: 0 40px 40px; overflow-x: auto; }
+    .catalog-table-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .catalog-table-top span { font-size: var(--small); font-weight: 500; color: var(--text-highlight); }
+    .catalog-cols { grid-template-columns: 44px minmax(160px,1fr) 195px 110px 160px 72px 76px 90px 160px 84px; min-width: 1000px; }
+    .catalog-th {
+      display: grid;
+      height: 44px; align-items: center;
+      background: var(--bg-secondary); border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      font-size: var(--smaller); font-weight: 500; color: var(--text-muted);
+    }
+    .catalog-th > div { padding: 0 12px; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; }
+    .catalog-th > div:first-child { padding: 0; justify-content: center; }
+    .catalog-tr {
+      display: grid;
+      height: 60px; align-items: center;
+      background: #fff; border: 1px solid var(--border-default); border-top: none;
+      font-size: var(--small); color: var(--text-default); transition: background 150ms ease;
+    }
+    .catalog-tr > div { padding: 0 12px; overflow: hidden; }
+    .catalog-tr > div:first-child { padding: 0; display: flex; align-items: center; justify-content: center; }
+    .catalog-tr:last-child { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+    .catalog-tr:hover { background: var(--bg-tertiary); }
+    .item-name { font-weight: 500; color: var(--text-highlight); display: flex; align-items: center; gap: 6px; overflow: hidden; }
+    .item-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sort-icon { color: var(--icon-muted); flex-shrink: 0; }
+    .col-info { color: var(--icon-muted); flex-shrink: 0; cursor: help; }
+    .meas-cell { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+    .meas-more { color: var(--text-muted); font-size: var(--smaller); white-space: nowrap; }
+    .meas-chevron { flex-shrink: 0; color: var(--icon-muted); }
+    .cov-unit { color: var(--text-muted); font-size: var(--smaller); }
+    .price-cell { display: flex; align-items: center; gap: 7px; }
+    .src-icon { color: var(--text-muted); flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 4px; }
+    .price-amt { font-variant-numeric: tabular-nums; color: var(--text-default); white-space: nowrap; }
+    .price-na { color: var(--text-muted); }
+    .price-ext { color: var(--text-link); flex-shrink: 0; cursor: pointer; transition: color 150ms; }
+    .price-ext:hover { color: var(--text-link-hover); }
+    .actions-cell { display: flex; align-items: center; gap: 6px; }
+    .dots-btn { background: none; border: none; cursor: pointer; color: var(--text-link); padding: 4px; display: flex; align-items: center; border-radius: 4px; transition: background 150ms; }
+    .dots-btn:hover { background: var(--bg-secondary); }
+    .catalog-cb { width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer; }
+    .catalog-footer {
+      padding: 12px 16px; text-align: right;
+      border: 1px solid var(--border-default); border-top: none;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      background: var(--bg-tertiary);
+      font-size: var(--smaller); color: var(--text-muted); min-width: 1000px;
+    }
+    /* ── Catalog variant toggle ── */
+    .catalog-variant-toggle {
+      margin: 0 40px 20px; display: flex; align-items: center; gap: 6px;
+    }
+    .catalog-variant-label {
+      font-size: var(--smaller); color: var(--text-muted); font-weight: 500; margin-right: 4px;
+    }
+    .variant-btn {
+      height: 30px; padding: 0 12px; border-radius: 999px;
+      border: 1px solid var(--border-default); background: #fff;
+      font-family: inherit; font-size: var(--smaller); font-weight: 500;
+      color: var(--text-muted); cursor: pointer; transition: all 150ms ease;
+    }
+    .variant-btn:hover { border-color: var(--border-primary); color: var(--text-link); }
+    .variant-btn.active {
+      background: var(--blue); border-color: var(--blue);
+      color: #fff;
+    }
+    /* ── Jumpstart notification banner ── */
+    .catalog-notif-banner {
+      margin: 0 40px 20px;
+      background: var(--bg-tertiary); border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg); padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .catalog-notif-icon {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      background: #F0F8FF; border: 1px solid var(--border-primary-subtle);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--icon-primary); flex-shrink: 0;
+    }
+    .catalog-notif-body { flex: 1; }
+    .catalog-notif-body h4 { font-size: var(--body); font-weight: 500; color: var(--text-highlight); margin-bottom: 3px; }
+    .catalog-notif-body p { font-size: var(--small); color: var(--text-muted); line-height: 1.6; }
+    /* ── New badge on table rows ── */
+    .tag-new {
+      display: inline-flex; align-items: center;
+      background: var(--green-20); color: #1a6640;
+      border: 1px solid #b7e4c7;
+      border-radius: 999px; padding: 2px 7px;
+      font-size: 11px; font-weight: 500; line-height: 1;
+      vertical-align: middle; margin-left: 6px;
+    }
+    /* ── Cover page ── */
+    .cover-screen {
+      min-height: calc(100vh - 38px); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 60px 40px;
+      background: linear-gradient(160deg, #0B0F12 0%, #16222e 60%, #1a2d3a 100%);
+    }
+    .cover-header { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
+    .cover-logo-mark {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--blue); display: flex; align-items: center; justify-content: center;
+    }
+    .cover-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; text-transform: uppercase; }
+    .cover-body { text-align: center; max-width: 680px; margin-bottom: 56px; }
+    .cover-title { font-size: 40px; font-weight: 500; color: #fff; line-height: 1.1; margin-bottom: 16px; }
+    .cover-problem { font-size: 18px; line-height: 1.7; color: rgba(255,255,255,0.5); max-width: 560px; margin: 0 auto; }
+    .cover-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 800px; }
+    .cover-card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px; padding: 20px; cursor: pointer; transition: all 180ms ease; text-align: left;
+    }
+    .cover-card:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+    .cover-card-num { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .cover-card-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
+    .cover-card-desc { font-size: 12px; color: rgba(255,255,255,0.35); line-height: 1.5; }
+    .cover-card-arrow { margin-top: 14px; font-size: 12px; color: var(--blue); font-weight: 500; }
+
+    /* ── Pill options (Step 2 materials) ── */
+    .q-options.pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .pill-opt {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 16px; border-radius: 999px;
+      border: 1.5px solid #E1E4E6; background: #fff;
+      cursor: pointer; user-select: none;
+      font-size: 15px; font-weight: 400; color: #28373E;
+      transition: all 150ms ease;
+    }
+    .pill-opt:hover { border-color: #1373E3; color: #126DD8; background: #F3F8FD; }
+    .pill-opt.sel { background: #1373E3; border-color: #1373E3; color: #fff; }
+    .pill-opt-emoji { font-size: 16px; line-height: 1; }
+
+    /* ── Summary step (Step 6) ── */
+    .q-summary-head { text-align: center; padding: 20px 0 12px; }
+    .q-summary-emoji { font-size: 36px; line-height: 1; margin-bottom: 8px; }
+    .q-summary-title { font-size: 26px; font-weight: 500; color: #0B0F12; margin-bottom: 4px; }
+    .q-summary-sub { font-size: 15px; color: #6B7980; }
+    .q-summary-rows { border: 1px solid #E1E4E6; border-radius: 8px; overflow: hidden; margin: 16px 0 4px; }
+    .q-summary-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 11px 16px; background: #fff; font-size: 13px; gap: 16px;
+      border-top: 1px solid #E1E4E6;
+    }
+    .q-summary-row:first-child { border-top: none; }
+    .q-sum-label { color: #6B7980; flex-shrink: 0; }
+    .q-sum-val { color: #0B0F12; font-weight: 500; text-align: right; }
+  </style>
+</head>
+<body>
+
+<!-- Proto nav -->
+<nav class="proto-nav">
+  <span>Screens:</span>
+  <button class="proto-btn active" onclick="show('cover')">Cover</button>
+  <button class="proto-btn" onclick="show('proposals-empty')">1. Proposals empty state</button>
+  <button class="proto-btn" onclick="show('questionnaire')">2. Questionnaire (modal)</button>
+  <button class="proto-btn" onclick="show('template-selection')">3. Template selection</button>
+  <button class="proto-btn" onclick="show('seeding-success')">4. Setup complete</button>
+  <button class="proto-btn" onclick="show('proposal-builder')">5. Proposal builder</button>
+  <button class="proto-btn" onclick="show('catalog-educated')">6. Catalog (seeded)</button>
+</nav>
+
+<!-- Toast -->
+<div class="toast-container">
+  <div class="toast" id="main-toast">
+    <div class="toast-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="toast-body">
+      <div class="toast-title" id="toast-title">Saved to catalog</div>
+      <div class="toast-msg" id="toast-msg">Drip Edge was added to your catalog.</div>
+    </div>
+    <button class="toast-close" onclick="hideToast()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Seeding overlay -->
+<div class="seeding-overlay" id="seeding-overlay">
+  <div class="seeding-spinner"></div>
+  <div class="seeding-text">
+    <h3>Setting up your account</h3>
+    <p>Adding templates and catalog items…</p>
+    <div class="seeding-items">
+      <div class="seeding-item" id="si-1">
+        <svg id="si-1-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E1E4E6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        Adding 4 templates
+      </div>
+      <div class="seeding-item" id="si-2">
+        <svg id="si-2-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E1E4E6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        Importing 32 catalog items
+      </div>
+      <div class="seeding-item" id="si-3">
+        <svg id="si-3-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E1E4E6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+        Applying your preferences
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Questionnaire overlay -->
+<div class="overlay" id="q-overlay">
+  <div class="q-modal">
+    <button class="q-close-btn" onclick="closeQ()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="q-progress-segs">
+      <div class="q-seg filled" id="qseg-1"></div>
+      <div class="q-seg" id="qseg-2"></div>
+      <div class="q-seg" id="qseg-3"></div>
+      <div class="q-seg" id="qseg-4"></div>
+      <div class="q-seg" id="qseg-5"></div>
+      <div class="q-seg" id="qseg-6"></div>
+    </div>
+    <div class="q-body">
+
+      <!-- Step 0: Intro -->
+      <div class="q-step active" id="qs-0">
+        <div class="q-intro">
+          <div class="q-intro-title">Get a head start with ready-to-use templates</div>
+          <p class="q-intro-body">Answer 5 quick questions and we'll pre-load your account with proposal templates and catalog items built around how you work.</p>
+          <div class="q-intro-chips">
+            <div class="q-intro-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Templates matched to your job types &amp; materials
+            </div>
+            <div class="q-intro-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Pre-loaded catalog items via Roofr Jumpstart
+            </div>
+            <div class="q-intro-chip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Fully editable any time
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Job types — multi-select, 2×2 grid, checkbox LEFT -->
+      <div class="q-step active" id="qs-1">
+        <div class="q-step-num">Step 1 of 5</div>
+        <div class="q-question">What type of jobs do you mainly do?</div>
+        <div class="q-subtitle">Select all that apply.</div>
+        <div class="q-options">
+          <div class="q-option" onclick="tog(this)">
+            <div class="q-checkbox"></div>
+            <span class="q-opt-emoji">🏠</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Residential</div>
+              <div class="q-opt-desc">Single-family homes</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="tog(this)">
+            <div class="q-checkbox"></div>
+            <span class="q-opt-emoji">🏢</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Commercial</div>
+              <div class="q-opt-desc">Flat roofs &amp; businesses</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="tog(this)">
+            <div class="q-checkbox"></div>
+            <span class="q-opt-emoji">💵</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Retail (Cash)</div>
+              <div class="q-opt-desc">Customer-paid projects</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="tog(this)">
+            <div class="q-checkbox"></div>
+            <span class="q-opt-emoji">📋</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Insurance</div>
+              <div class="q-opt-desc">Storm &amp; claims work</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Materials — multi-select, pill/chip style -->
+      <div class="q-step" id="qs-2">
+        <div class="q-step-num">Step 2 of 5</div>
+        <div class="q-question">What roofing materials do you work with?</div>
+        <div class="q-subtitle">Select all that apply. We'll build a template for each material you choose.</div>
+        <div class="q-options pills">
+          <div class="pill-opt" onclick="togPill(this)"><span class="pill-opt-emoji">🪨</span>Asphalt Shingle</div>
+          <div class="pill-opt" onclick="togPill(this)"><span class="pill-opt-emoji">🔩</span>Metal</div>
+          <div class="pill-opt" onclick="togPill(this)"><span class="pill-opt-emoji">🌲</span>Cedar</div>
+          <div class="pill-opt" onclick="togPill(this)"><span class="pill-opt-emoji">🏺</span>Tile</div>
+          <div class="pill-opt" onclick="togPill(this)"><span class="pill-opt-emoji">🏗️</span>Flat / Low-slope</div>
+        </div>
+      </div>
+
+      <!-- Step 3: Pricing method — single-select, stacked, radio LEFT -->
+      <div class="q-step" id="qs-3">
+        <div class="q-step-num">Step 3 of 5</div>
+        <div class="q-question">How do you structure your pricing?</div>
+        <div class="q-subtitle">How many options do you want to offer your customers?</div>
+        <div class="q-options single">
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">1️⃣</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Single option</div>
+              <div class="q-opt-desc">One price, clear and simple</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">🥇</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Good / Better / Best</div>
+              <div class="q-opt-desc">Let clients choose their tier</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Pricing style — single-select, stacked, radio LEFT -->
+      <div class="q-step" id="qs-4">
+        <div class="q-step-num">Step 4 of 5</div>
+        <div class="q-question">What's your preferred pricing style?</div>
+        <div class="q-subtitle">How do you prefer to structure the numbers on your proposals?</div>
+        <div class="q-options single">
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">💰</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">All-inclusive</div>
+              <div class="q-opt-desc">One total, no breakdown shown</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">📐</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Per square</div>
+              <div class="q-opt-desc">Priced by roof area</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">📊</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Line item</div>
+              <div class="q-opt-desc">Itemized materials and labor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Line item visibility — single-select, stacked, radio LEFT -->
+      <div class="q-step" id="qs-5">
+        <div class="q-step-num">Step 5 of 5</div>
+        <div class="q-question">Should customers see your line item prices?</div>
+        <div class="q-subtitle">Control how much pricing detail your customers see on the proposal.</div>
+        <div class="q-options single">
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">👁️</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Shown to customer</div>
+              <div class="q-opt-desc">Transparency builds trust</div>
+            </div>
+          </div>
+          <div class="q-option" onclick="one(this)">
+            <div class="q-radio"></div>
+            <span class="q-opt-emoji">🙈</span>
+            <div class="q-opt-content">
+              <div class="q-opt-label">Hidden from customer</div>
+              <div class="q-opt-desc">Show totals only</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Summary -->
+      <div class="q-step" id="qs-6">
+        <div class="q-summary-head">
+          <div class="q-summary-emoji">🎉</div>
+          <div class="q-summary-title">All set!</div>
+          <div class="q-summary-sub">Here's what we'll build for you</div>
+        </div>
+        <div class="q-summary-rows">
+          <div class="q-summary-row"><span class="q-sum-label">Job types</span><span class="q-sum-val" id="sum-jobtypes">—</span></div>
+          <div class="q-summary-row"><span class="q-sum-label">Materials</span><span class="q-sum-val" id="sum-materials">—</span></div>
+          <div class="q-summary-row"><span class="q-sum-label">Pricing method</span><span class="q-sum-val" id="sum-method">—</span></div>
+          <div class="q-summary-row"><span class="q-sum-label">Pricing style</span><span class="q-sum-val" id="sum-style">—</span></div>
+          <div class="q-summary-row"><span class="q-sum-label">Line item visibility</span><span class="q-sum-val" id="sum-visibility">—</span></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="q-footer">
+      <button class="q-back-btn hidden" id="qback" onclick="qBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back
+      </button>
+      <button class="q-skip-btn" id="qskip" onclick="closeQ()">Skip for now</button>
+      <button class="q-continue-btn disabled" id="qcontinue" onclick="qNext()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════════ -->
+<div class="screen active" id="screen-cover">
+  <div class="cover-screen">
+    <div class="cover-header">
+      <div class="cover-logo-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="cover-label">Roofr · Design prototype · May 2026</span>
+    </div>
+    <div class="cover-body">
+      <div class="cover-title">Proposals: Progressive Onboarding</div>
+      <p class="cover-problem">New users arrive at an empty Proposals experience with no templates, no catalog items, and no guidance — leading to drop-off before their first proposal is sent. This explores a short onboarding questionnaire that generates personalized starter templates and pre-seeds the catalog on day one.</p>
+    </div>
+    <div class="cover-grid">
+      <div class="cover-card" onclick="show('proposals-empty')">
+        <div class="cover-card-num">01</div>
+        <div class="cover-card-title">Proposals empty state</div>
+        <div class="cover-card-desc">Three paths for new users: start a proposal, build templates, or load Jumpstart catalog</div>
+        <div class="cover-card-arrow">View screen →</div>
+      </div>
+      <div class="cover-card" onclick="show('questionnaire')">
+        <div class="cover-card-num">02</div>
+        <div class="cover-card-title">Questionnaire (mid-flow)</div>
+        <div class="cover-card-desc">5-step modal collecting job types, materials, pricing method, pricing style, and line item visibility</div>
+        <div class="cover-card-arrow">View screen →</div>
+      </div>
+      <div class="cover-card" onclick="show('template-selection')">
+        <div class="cover-card-num">03</div>
+        <div class="cover-card-title">Template selection</div>
+        <div class="cover-card-desc">Recommended templates based on questionnaire answers, with one-click account setup</div>
+        <div class="cover-card-arrow">View screen →</div>
+      </div>
+      <div class="cover-card" onclick="show('seeding-success')">
+        <div class="cover-card-num">04</div>
+        <div class="cover-card-title">Setup complete</div>
+        <div class="cover-card-desc">Confirmation showing templates and catalog items added, with next steps to create a proposal</div>
+        <div class="cover-card-arrow">View screen →</div>
+      </div>
+      <div class="cover-card" onclick="show('proposal-builder')">
+        <div class="cover-card-num">05</div>
+        <div class="cover-card-title">Proposal builder</div>
+        <div class="cover-card-desc">Inline catalog writeback — line items added to a proposal are automatically saved back to the catalog</div>
+        <div class="cover-card-arrow">View screen →</div>
+      </div>
+      <div class="cover-card" onclick="show('catalog-educated')">
+        <div class="cover-card-num">06</div>
+        <div class="cover-card-title">Catalog (seeded state)</div>
+        <div class="cover-card-desc">What users see when they first visit the catalog after Roofr Jumpstart pre-loads their items</div>
+        <div class="cover-card-arrow">View screen →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 1 — Proposals empty state
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-proposals-empty">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo-area">
+        <div class="sidebar-logo-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="sidebar-company">
+          <div class="sidebar-company-name">Johnson Roofing</div>
+          <div class="sidebar-company-plan">Essentials plan</div>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item" onclick=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Jobs</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Performance</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Tools</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Measurements</div>
+        <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proposals</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Manage</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Catalog</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Automations</div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="proposals-header">
+        <div class="page-title">Proposals</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn btn-default btn-alt" onclick="show('proposal-builder')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New change order
+          </button>
+          <button class="btn btn-default btn-primary" onclick="show('proposal-builder')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New proposal
+          </button>
+        </div>
+      </div>
+
+      <div class="tabs-bar">
+        <div class="tab active">Proposals</div>
+        <div class="tab">Change orders</div>
+        <div class="tab" onclick="show('template-selection')">Templates</div>
+        <div class="tab">Settings</div>
+      </div>
+
+      <div class="pathway-wrap" style="background:var(--bg-tertiary)">
+        <div class="pathway-header">
+          <h3>How would you like to get started?</h3>
+          <p>Pick a path — you can always do the others later.</p>
+        </div>
+
+        <div class="pathway-grid">
+
+          <!-- Card 1: Create blank proposal — primary action -->
+          <div class="pathway-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+              <div class="pathway-card-icon accent" style="margin-bottom:0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </div>
+              <span class="badge badge-blue">⚡ Fastest start</span>
+            </div>
+            <h4>Create blank proposal</h4>
+            <p>The fastest way to get a proposal out the door. Add line items as you go — no setup needed. Line items are saved back to your catalog automatically.</p>
+            <div class="pathway-card-action">
+              <button class="btn btn-default btn-primary" onclick="show('proposal-builder')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New proposal
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Create template -->
+          <div class="pathway-card">
+            <div class="pathway-card-icon" style="margin-bottom:16px">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+            <h4>Create template</h4>
+            <p>Answer 5 quick questions and we'll pre-load templates built for your job types and materials. Catalog items come included.</p>
+            <div class="pathway-card-action">
+              <button class="btn btn-default btn-alt" onclick="openQ()">Get started</button>
+            </div>
+          </div>
+
+          <!-- Card 3: Set up catalog -->
+          <div class="pathway-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+              <div class="pathway-card-icon" style="margin-bottom:0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <!-- Supplier logo images -->
+              <div style="display:flex;gap:3px;align-items:center">
+                <img title="ABC Supply" src="data:image/png;base64,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" style="width:28px;height:28px;border-radius:6px;border:1px solid #E1E4E6;object-fit:cover;display:block;flex-shrink:0" />
+                <img title="SRS Distribution" src="data:image/png;base64,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" style="width:28px;height:28px;border-radius:6px;border:1px solid #E1E4E6;object-fit:cover;display:block;flex-shrink:0" />
+                <img title="QXO" src="data:image/png;base64,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" style="width:28px;height:28px;border-radius:6px;border:1px solid #E1E4E6;object-fit:cover;display:block;flex-shrink:0" />
+              </div>
+            </div>
+            <h4>Set up catalog</h4>
+            <p>Instantly load your catalog with curated roofing materials, labor rates, and items built for roofers. Ready to use in any proposal right away.</p>
+            <div class="pathway-card-action">
+              <button class="btn btn-default btn-alt" onclick="show('catalog-educated')">Get started</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pathway-info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          You can send or download 5 proposals for free
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 3 — Template selection
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-template-selection">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo-area">
+        <div class="sidebar-logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="sidebar-company"><div class="sidebar-company-name">Johnson Roofing</div><div class="sidebar-company-plan">Essentials plan</div></div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Jobs</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Tools</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Measurements</div>
+        <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proposals</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Manage</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Catalog</div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="proposals-header">
+        <div class="page-title">Proposals</div>
+        <button class="btn btn-default btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New proposal
+        </button>
+      </div>
+      <div class="tabs-bar">
+        <div class="tab">Proposals</div>
+        <div class="tab">Change orders</div>
+        <div class="tab active">Templates</div>
+        <div class="tab">Settings</div>
+      </div>
+
+      <div class="template-banner">
+<div class="template-banner-text">
+          <h4>4 templates recommended for you</h4>
+          <p>Based on your answers — residential retail, asphalt shingles, line item pricing. All selected by default. Deselect any you don't want.</p>
+        </div>
+        <div class="template-banner-actions">
+          <button class="btn-link" onclick="show('questionnaire')">Edit answers</button>
+        </div>
+      </div>
+
+      <div class="page-content">
+        <div class="template-grid" id="tpl-grid">
+          <div class="tpl-card sel" onclick="togTpl(this)">
+            <div class="tpl-card-header"><div class="tpl-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="tpl-checkbox"></div></div>
+            <h4>Residential Asphalt — Retail Full Replace</h4>
+            <p>Standard retail reroof with materials, labor, and permit. Clean layout for homeowner review.</p>
+            <div class="tag-row"><span class="tag tag-green">Retail</span><span class="tag tag-muted">Asphalt</span><span class="tag tag-muted">Line item</span></div>
+          </div>
+          <div class="tpl-card sel" onclick="togTpl(this)">
+            <div class="tpl-card-header"><div class="tpl-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="tpl-checkbox"></div></div>
+            <h4>Residential Asphalt — Insurance Claim</h4>
+            <p>Full replacement with supplement items. Includes O&P, detach/reset, and code upgrade sections.</p>
+            <div class="tag-row"><span class="tag tag-blue">Insurance</span><span class="tag tag-muted">Asphalt</span><span class="tag tag-muted">Line item</span></div>
+          </div>
+          <div class="tpl-card sel" onclick="togTpl(this)">
+            <div class="tpl-card-header"><div class="tpl-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="tpl-checkbox"></div></div>
+            <h4>Partial Repair — Insurance</h4>
+            <p>Scoped repair with section matching. Includes photo annotation placeholder and adjuster notes.</p>
+            <div class="tag-row"><span class="tag tag-blue">Insurance</span><span class="tag tag-orange">Repair</span><span class="tag tag-muted">Line item</span></div>
+          </div>
+          <div class="tpl-card sel" onclick="togTpl(this)">
+            <div class="tpl-card-header"><div class="tpl-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="tpl-checkbox"></div></div>
+            <h4>Good / Better / Best — Asphalt</h4>
+            <p>Three-tier proposal with economy, mid-grade, and premium shingle options pre-loaded.</p>
+            <div class="tag-row"><span class="tag tag-green">Retail</span><span class="tag tag-muted">Asphalt</span><span class="tag tag-blue">Good/Better/Best</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--border-default);display:flex;justify-content:space-between;align-items:center;">
+          <p style="font-size:var(--small);color:var(--text-muted)">Also includes <strong style="color:var(--text-default)">32 catalog items</strong> from Roofr Jumpstart — asphalt materials, labor rates, and permit items matched to your selections.</p>
+          <button class="btn btn-default btn-primary" style="margin-left:20px;flex-shrink:0" onclick="startSeeding()">
+            Save 4 templates + 32 Catalog items
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4 — Setup complete
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-seeding-success">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo-area">
+        <div class="sidebar-logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="sidebar-company"><div class="sidebar-company-name">Johnson Roofing</div><div class="sidebar-company-plan">Essentials plan</div></div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proposals</div>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="proposals-header">
+        <div class="page-title">Proposals</div>
+        <button class="btn btn-default btn-primary" onclick="show('proposals-empty')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New proposal
+        </button>
+      </div>
+      <div class="tabs-bar">
+        <div class="tab">Proposals</div>
+        <div class="tab">Change orders</div>
+        <div class="tab active">Templates</div>
+        <div class="tab">Settings</div>
+      </div>
+      <div class="tpl-gallery-wrap">
+        <div class="tpl-toolbar">
+          <div class="tpl-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Search for a template name...
+          </div>
+          <div class="tpl-toolbar-sep"></div>
+          <button class="tpl-sort">
+            Sort by
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div class="tpl-breadcrumb">
+          All templates
+          <span class="tpl-breadcrumb-sep">›</span>
+          <span class="tpl-breadcrumb-active">My templates</span>
+        </div>
+        <div class="tpl-thumb-grid">
+
+          <div class="tpl-new-card">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Template
+          </div>
+
+          <div class="tpl-thumb-card">
+            <div class="tpl-thumb-img">
+              <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400&h=280&fit=crop" alt="" />
+              <div class="tpl-jumpstart-badge">⚡ Jumpstart</div>
+            </div>
+            <div class="tpl-thumb-footer">
+              <div class="tpl-thumb-name-row">
+                <span class="tpl-thumb-name">Residential Asphalt — Retail Full Replace</span>
+                <button class="tpl-thumb-dots"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+              </div>
+              <div class="tag-row"><span class="tag tag-muted">Retail</span><span class="tag tag-muted">Asphalt</span><span class="tag tag-muted">Line item</span></div>
+            </div>
+          </div>
+
+          <div class="tpl-thumb-card">
+            <div class="tpl-thumb-img">
+              <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=280&fit=crop" alt="" />
+              <div class="tpl-jumpstart-badge">⚡ Jumpstart</div>
+            </div>
+            <div class="tpl-thumb-footer">
+              <div class="tpl-thumb-name-row">
+                <span class="tpl-thumb-name">Residential Asphalt — Insurance Claim</span>
+                <button class="tpl-thumb-dots"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+              </div>
+              <div class="tag-row"><span class="tag tag-muted">Insurance</span><span class="tag tag-muted">Asphalt</span><span class="tag tag-muted">Line item</span></div>
+            </div>
+          </div>
+
+          <div class="tpl-thumb-card">
+            <div class="tpl-thumb-img">
+              <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=280&fit=crop" alt="" />
+              <div class="tpl-jumpstart-badge">⚡ Jumpstart</div>
+            </div>
+            <div class="tpl-thumb-footer">
+              <div class="tpl-thumb-name-row">
+                <span class="tpl-thumb-name">Partial Repair — Insurance</span>
+                <button class="tpl-thumb-dots"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+              </div>
+              <div class="tag-row"><span class="tag tag-muted">Insurance</span><span class="tag tag-muted">Repair</span><span class="tag tag-muted">Line item</span></div>
+            </div>
+          </div>
+
+          <div class="tpl-thumb-card">
+            <div class="tpl-thumb-img">
+              <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=280&fit=crop" alt="" />
+              <div class="tpl-jumpstart-badge">⚡ Jumpstart</div>
+            </div>
+            <div class="tpl-thumb-footer">
+              <div class="tpl-thumb-name-row">
+                <span class="tpl-thumb-name">Good / Better / Best — Asphalt</span>
+                <button class="tpl-thumb-dots"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+              </div>
+              <div class="tag-row"><span class="tag tag-muted">Retail</span><span class="tag tag-muted">Asphalt</span><span class="tag tag-muted">Good/Better/Best</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 5 — Proposal builder + writeback
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-proposal-builder">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo-area">
+        <div class="sidebar-logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="sidebar-company"><div class="sidebar-company-name">Johnson Roofing</div><div class="sidebar-company-plan">Essentials plan</div></div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proposals</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Catalog</div>
+      </div>
+    </aside>
+    <div class="main" style="overflow:hidden">
+      <div class="proposals-header" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn btn-sm btn-ghost" onclick="show('proposals-empty')" style="padding:0 8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <span style="font-size:var(--small);color:var(--text-muted)">Proposals</span>
+          <span style="font-size:var(--small);color:var(--text-muted)">/</span>
+          <span style="font-size:var(--small);font-weight:500;color:var(--text-highlight)">Johnson Residence</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-default btn-outline">Preview</button>
+          <button class="btn btn-default btn-primary">Send proposal</button>
+        </div>
+      </div>
+      <div class="proposal-shell" style="flex:1;margin-top:16px">
+        <div class="proposal-main">
+          <div class="proposal-canvas">
+            <div class="proposal-header-block">
+              <h2>Johnson Residence</h2>
+              <p>142 Oak Street, Springfield, IL · May 1, 2026</p>
+            </div>
+            <div class="line-section">
+              <div class="line-section-title">Materials</div>
+              <table class="line-table">
+                <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th style="text-align:right">Price</th></tr></thead>
+                <tbody>
+                  <tr><td>Atlas ProLam Shingles</td><td>24</td><td>Bundle</td><td style="text-align:right">$3,120</td></tr>
+                  <tr><td>Synthetic Underlayment</td><td>4</td><td>Roll</td><td style="text-align:right">$320</td></tr>
+                  <tr><td>Ice &amp; Water Shield</td><td>2</td><td>Roll</td><td style="text-align:right">$280</td></tr>
+                </tbody>
+              </table>
+              <div class="add-line" onclick="fireToast()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add line item
+                <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:4px">— click to demo catalog writeback</span>
+              </div>
+            </div>
+            <div class="line-section">
+              <div class="line-section-title">Labor</div>
+              <table class="line-table">
+                <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th style="text-align:right">Price</th></tr></thead>
+                <tbody>
+                  <tr><td>Tear-off &amp; Disposal</td><td>21</td><td>Square</td><td style="text-align:right">$2,100</td></tr>
+                  <tr><td>Installation Labor</td><td>21</td><td>Square</td><td style="text-align:right">$3,780</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="proposal-total">
+              <div class="total-box"><div class="total-label">Total</div><div class="total-amount">$9,600</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="proposal-sidebar">
+          <h4>Catalog items</h4>
+          <div class="sidebar-sub">Click to add to proposal</div>
+          <div class="catalog-sug" onclick="fireToast()"><h5>Drip Edge</h5><p>Per linear foot · $0.85</p></div>
+          <div class="catalog-sug"><h5>Ridge Cap Shingles</h5><p>Per bundle · $48.00</p></div>
+          <div class="catalog-sug"><h5>Roof Deck Nails</h5><p>Per box · $32.00</p></div>
+          <div class="catalog-sug"><h5>Starter Strip</h5><p>Per bundle · $42.00</p></div>
+          <div class="catalog-sug"><h5>Pipe Boot Flashing</h5><p>Per unit · $18.00</p></div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-default)">
+            <button class="btn-link" style="font-size:var(--smaller)" onclick="show('catalog-educated')">View full catalog</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 6 — Catalog (seeded / educated state)
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-catalog-educated">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-logo-area">
+        <div class="sidebar-logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="sidebar-company"><div class="sidebar-company-name">Johnson Roofing</div><div class="sidebar-company-plan">Essentials plan</div></div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Jobs</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Tools</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Measurements</div>
+        <div class="nav-item" onclick="show('proposals-empty')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proposals</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Manage</div>
+        <div class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</div>
+        <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Catalog</div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="proposals-header">
+        <div class="page-title">Catalog</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-default btn-outline">Upload CSV</button>
+          <button class="btn btn-default btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add item
+          </button>
+        </div>
+      </div>
+
+      <!-- No tabs on catalog — just content below header -->
+      <div style="height:1px;background:var(--border-default);margin:0 0 24px;"></div>
+
+      <!-- Prototype variant toggle -->
+      <div class="catalog-variant-toggle">
+        <span class="catalog-variant-label">Prototype state:</span>
+        <button class="variant-btn active" data-v="new" onclick="setCatalogVariant('new')">No prior items</button>
+        <button class="variant-btn" data-v="existing" onclick="setCatalogVariant('existing')">Had existing items</button>
+      </div>
+
+      <!-- Variant: No prior items — hint + promo cards -->
+      <div id="cvar-new-state">
+        <div class="catalog-hint" id="catalog-hint">
+          <div class="catalog-hint-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="catalog-hint-body">
+            <h4>Your catalog is ready — here's what else you can do</h4>
+            <p>Roofr Jumpstart added 32 items to get you going. Connect a supplier to unlock live pricing, add more items in bulk via CSV, or add them one at a time as you price jobs.</p>
+            <div class="catalog-hint-btns">
+              <button class="btn btn-sm btn-outline">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Connect supplier
+              </button>
+              <button class="btn btn-sm btn-secondary">Upload CSV</button>
+              <button class="btn btn-sm btn-secondary">Add item manually</button>
+            </div>
+          </div>
+          <button class="catalog-hint-close" onclick="document.getElementById('catalog-hint').style.display='none'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="promo-cards">
+          <div class="promo-card">
+            <div class="promo-card-icon blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div>
+              <h4>Connect a supplier for live pricing</h4>
+              <p>Link ABC Supply, QXO, or SRS to see real-time material costs in every proposal automatically.</p>
+              <button class="btn-link" style="margin-top:6px;display:inline-block">Connect in 2 minutes →</button>
+            </div>
+          </div>
+          <div class="promo-card">
+            <div class="promo-card-icon green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div>
+              <h4>Bring your own items via CSV</h4>
+              <p>Upload your existing inventory spreadsheet to add custom items with your own pricing.</p>
+              <button class="btn-link" style="margin-top:6px;display:inline-block">Download template →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Variant: Had existing items — notification banner only -->
+      <div id="cvar-existing-state" style="display:none">
+        <div class="catalog-notif-banner">
+          <div class="catalog-notif-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="catalog-notif-body">
+            <h4>32 items were added to your catalog</h4>
+            <p>Roofr Jumpstart added items based on your template setup. They're tagged <strong>New</strong> for 24 hours so you can spot them easily — edit any item or remove ones you don't need.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Catalog table (shared, NEW badges shown only in existing variant) -->
+      <div class="catalog-table-wrap">
+        <div class="catalog-table-top">
+          <span id="catalog-item-count">339 items</span>
+          <button class="btn btn-sm btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+            Filter
+          </button>
+        </div>
+        <!-- Header -->
+        <div class="catalog-th catalog-cols">
+          <div>
+            <input type="checkbox" class="catalog-cb">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--icon-muted);margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div>Name <svg class="sort-icon" width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 5 2 7 4"/><polyline points="3 8 5 10 7 8"/></svg></div>
+          <div>Measurement <svg class="col-info" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+          <div>Coverage <svg class="col-info" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+          <div>Pre-tax costs &nbsp;<span style="color:var(--text-link);font-weight:400">Source</span> <svg class="sort-icon" width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 5 2 7 4"/><polyline points="3 8 5 10 7 8"/></svg></div>
+          <div>Waste <svg class="sort-icon" width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 5 2 7 4"/><polyline points="3 8 5 10 7 8"/></svg></div>
+          <div>Unit <svg class="sort-icon" width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 5 2 7 4"/><polyline points="3 8 5 10 7 8"/></svg></div>
+          <div>Sales tax <svg class="sort-icon" width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 4 5 2 7 4"/><polyline points="3 8 5 10 7 8"/></svg></div>
+          <div>Material purchase tax <svg class="col-info" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+          <div>Actions</div>
+        </div>
+
+        <!-- Row 1 — Atlas ProLam Shingles -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas ProLam Shingles</span><span class="tag-new" style="display:none">New</span></div></div>
+          <div><div class="meas-cell">Pitched roof area (sqft)<svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>32.80 <span class="cov-unit">sqft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-amt">$38.09</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 2 — Atlas Pinnacle Pristine Shingles -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas Pinnacle Pristine Shingles</span><span class="tag-new" style="display:none">New</span></div></div>
+          <div><div class="meas-cell">Pitched roof area (sqft)<svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>32.80 <span class="cov-unit">sqft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-amt">$39.34</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 3 — Atlas StormMaster Shake -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas StormMaster Shake</span><span class="tag-new" style="display:none">New</span></div></div>
+          <div><div class="meas-cell">Pitched roof area (sqft)<svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>32.80 <span class="cov-unit">sqft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-amt">$63.17*</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 4 — Atlas Pro-Cut Hip & Ridge -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas Pro-Cut Hip &amp; Ridge Sco...</span><span class="tag-new" style="display:none">New</span></div></div>
+          <div><div class="meas-cell">Ridges length<span class="meas-more">&nbsp;+ 1 more</span><svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>31.00 <span class="cov-unit">ft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-amt">$75.50</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 5 — Atlas ProLam Hip & Ridge (no badge) -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas ProLam Hip &amp; Ridge Shi...</span></div></div>
+          <div><div class="meas-cell">Ridges length<span class="meas-more">&nbsp;+ 1 more</span><svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>31.00 <span class="cov-unit">ft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-na">N/A</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 6 — Atlas StormMaster Hip & Ridge (no badge) -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas StormMaster® Hip &amp; Ri...</span></div></div>
+          <div><div class="meas-cell">Ridges length<span class="meas-more">&nbsp;+ 1 more</span><svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>33.00 <span class="cov-unit">ft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-na">N/A</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 7 — Atlas Pro-Cut HP42 Starter (no badge) -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas Pro-Cut HP42 Starter Sh...</span></div></div>
+          <div><div class="meas-cell">Eaves length<span class="meas-more">&nbsp;+ 1 more</span><svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>140.00 <span class="cov-unit">ft</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-amt">$74.00</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Bundle</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <!-- Row 8 — Atlas Summit 60 Synthetic (no badge) -->
+        <div class="catalog-tr catalog-cols">
+          <div><input type="checkbox" class="catalog-cb"></div>
+          <div><div class="item-name"><span class="item-name-text">Atlas Summit 60 Synthetic Un...</span></div></div>
+          <div><div class="meas-cell">Pitched roof area (squ...<svg class="meas-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
+          <div>10.00 <span class="cov-unit">squares</span></div>
+          <div><div class="price-cell"><div class="src-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><span class="price-na">N/A</span><svg class="price-ext" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div>0.00%</div>
+          <div>Roll</div>
+          <div>0.000%</div>
+          <div>0.000%</div>
+          <div><div class="actions-cell"><button class="btn-link" style="font-size:var(--small)">Edit</button><button class="dots-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></div></div>
+        </div>
+
+        <div class="catalog-footer">Showing 1–8 of <span id="catalog-total-count">339</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Nav icons — Feather
+  const ICONS = {
+    home:           `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
+    jobs:           `<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>`,
+    calendar:       `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+    performance:    `<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>`,
+    estimator:      `<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>`,
+    sites:          `<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>`,
+    measurements:   `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>`,
+    proposals:      `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>`,
+    pdfsigner:      `<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>`,
+    materialorders: `<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>`,
+    workorders:     `<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>`,
+    invoices:       `<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="12" y1="16" x2="16" y2="16"/>`,
+    payments:       `<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>`,
+    contacts:       `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+    filemanager:    `<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>`,
+    catalog:        `<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>`,
+    automations:    `<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>`,
+    communications: `<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>`,
+    users:          `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>`,
+    credits:        `<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`,
+    helpcenter:     `<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z"/>`,
+    settings:       `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`
+  };
+
+  function navItem(key, label, active, onclick, badge) {
+    const ico = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${ICONS[key]}</svg>`;
+    const cls = 'nav-item' + (active ? ' active' : '');
+    const click = onclick ? ` onclick="${onclick}"` : '';
+    const bdg = badge ? `<span class="nav-badge">${badge}</span>` : '';
+    return `<div class="${cls}"${click}>${ico}${label}${bdg}</div>`;
+  }
+
+  function buildNav(activeKey) {
+    const ni = (key, label, onclick, badge) => navItem(key, label, key === activeKey, onclick, badge);
+    const navHTML = `
+      <div class="nav-section" style="padding-top:12px">
+        ${ni('home','Home')}
+        ${ni('jobs','Jobs')}
+        ${ni('calendar','Calendar')}
+        ${ni('performance','Performance')}
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Tools</div>
+        ${ni('sites','Roofr Sites', null, 'Beta')}
+        ${ni('estimator','Instant Estimator')}
+        ${ni('measurements','Measurements')}
+        ${ni('proposals','Proposals', "show('proposals-empty')")}
+        ${ni('pdfsigner','PDF Signer')}
+        ${ni('materialorders','Material Orders')}
+        ${ni('workorders','Work Orders')}
+        ${ni('invoices','Invoices')}
+        ${ni('payments','Payments')}
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Manage</div>
+        ${ni('contacts','Contacts')}
+        ${ni('filemanager','File Manager')}
+        ${ni('catalog','Catalog', "show('catalog-educated')")}
+        ${ni('automations','Automations')}
+        ${ni('communications','Communications')}
+        ${ni('users','Users')}
+        ${ni('credits','Credits')}
+      </div>
+      <div class="sidebar-footer">
+        ${ni('helpcenter','Help Center')}
+        ${ni('settings','Settings')}
+      </div>
+    `;
+    document.querySelectorAll('.sidebar').forEach(sidebar => {
+      Array.from(sidebar.children).forEach(child => {
+        if (!child.classList.contains('sidebar-logo-area')) child.remove();
+      });
+      sidebar.insertAdjacentHTML('beforeend', navHTML);
+    });
+  }
+
+  function show(id) {
+    document.getElementById('q-overlay').classList.remove('open');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+
+    if (id === 'questionnaire') {
+      document.getElementById('screen-proposals-empty')?.classList.add('active');
+      document.querySelectorAll('.proto-btn')[2]?.classList.add('active');
+      buildNav('proposals');
+      qS = 0; syncQ();
+      document.getElementById('q-overlay').classList.add('open');
+      window.scrollTo(0,0);
+      return;
+    }
+
+    document.getElementById('screen-' + id)?.classList.add('active');
+    const map = {'cover':0,'proposals-empty':1,'template-selection':3,'seeding-success':4,'proposal-builder':5,'catalog-educated':6};
+    if (map[id] !== undefined) document.querySelectorAll('.proto-btn')[map[id]]?.classList.add('active');
+    if (id !== 'cover') buildNav(id === 'catalog-educated' ? 'catalog' : 'proposals');
+    window.scrollTo(0,0);
+  }
+
+  // Catalog variant toggle
+  function setCatalogVariant(v) {
+    document.querySelectorAll('#screen-catalog-educated .variant-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.v === v);
+    });
+    document.getElementById('cvar-new-state').style.display      = v === 'new'      ? '' : 'none';
+    document.getElementById('cvar-existing-state').style.display = v === 'existing' ? '' : 'none';
+    const isExisting = v === 'existing';
+    document.querySelectorAll('#screen-catalog-educated .tag-new').forEach(el => {
+      el.style.display = isExisting ? '' : 'none';
+    });
+    document.getElementById('catalog-item-count').textContent = isExisting ? '371 items' : '339 items';
+    document.getElementById('catalog-total-count').textContent = isExisting ? '371' : '339';
+  }
+
+  // Questionnaire
+  let qS = 0;
+  function openQ() { qS = 0; syncQ(); document.getElementById('q-overlay').classList.add('open'); }
+  function closeQ() { document.getElementById('q-overlay').classList.remove('open'); }
+  function syncQ() {
+    document.querySelectorAll('.q-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('qs-' + qS)?.classList.add('active');
+    const segs = document.querySelector('.q-progress-segs');
+    const skip = document.getElementById('qskip');
+    const back = document.getElementById('qback');
+    const btn  = document.getElementById('qcontinue');
+    if (qS === 0) {
+      segs.style.visibility = 'hidden';
+      skip.classList.remove('hidden');
+      back.classList.add('hidden');
+      btn.textContent = 'Get started';
+      btn.classList.remove('disabled');
+      return;
+    }
+    segs.style.visibility = '';
+    skip.classList.add('hidden');
+    for (let i = 1; i <= 6; i++) document.getElementById('qseg-'+i).classList.toggle('filled', i <= qS);
+    back.classList.remove('hidden');
+    if (qS === 6) { btn.textContent = '✨ Build my templates'; btn.classList.remove('disabled'); }
+    else if (qS === 5) { btn.textContent = 'Review selections'; checkContinue(); }
+    else { btn.textContent = 'Continue'; checkContinue(); }
+  }
+  function checkContinue() {
+    if (qS === 6) return;
+    const step = document.getElementById('qs-' + qS);
+    const hasSel = qS === 2 ? step?.querySelector('.pill-opt.sel') : step?.querySelector('.q-option.sel');
+    document.getElementById('qcontinue').classList.toggle('disabled', !hasSel);
+  }
+  function populateSummary() {
+    const labels = (stepId, sel) => [...document.querySelectorAll(`#${stepId} ${sel}`)].map(e => e.textContent.trim()).join(', ') || '—';
+    const pills = () => [...document.querySelectorAll('#qs-2 .pill-opt.sel')].map(e => e.textContent.trim()).join(', ') || '—';
+    document.getElementById('sum-jobtypes').textContent   = labels('qs-1', '.q-option.sel .q-opt-label');
+    document.getElementById('sum-materials').textContent  = pills();
+    document.getElementById('sum-method').textContent     = labels('qs-3', '.q-option.sel .q-opt-label');
+    document.getElementById('sum-style').textContent      = labels('qs-4', '.q-option.sel .q-opt-label');
+    document.getElementById('sum-visibility').textContent = labels('qs-5', '.q-option.sel .q-opt-label');
+  }
+  function qNext() {
+    if (document.getElementById('qcontinue').classList.contains('disabled')) return;
+    if (qS === 6) { closeQ(); show('template-selection'); }
+    else { qS++; if (qS === 6) populateSummary(); syncQ(); }
+  }
+  function qBack() { if (qS > 0) { qS--; syncQ(); } }
+  function tog(el) { el.classList.toggle('sel'); checkContinue(); }
+  function togPill(el) { el.classList.toggle('sel'); checkContinue(); }
+  function one(el) { el.closest('.q-options').querySelectorAll('.q-option').forEach(o => o.classList.remove('sel')); el.classList.add('sel'); checkContinue(); }
+
+  // Template selection
+  function togTpl(card) { card.classList.toggle('sel'); }
+
+  // Seeding animation
+  const CHECK = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#269F42" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  function startSeeding() {
+    const ov = document.getElementById('seeding-overlay');
+    ov.classList.add('open');
+    [[600,'si-1'],[1300,'si-2'],[2000,'si-3']].forEach(([d,id]) => setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('done');
+      el.innerHTML = CHECK + el.innerHTML.replace(/<svg[^>]*>.*?<\/svg>/s,'');
+    }, d));
+    setTimeout(() => {
+      ov.classList.remove('open');
+      show('seeding-success');
+      clearTimeout(toastTimer);
+      document.getElementById('toast-title').textContent = 'Templates added';
+      document.getElementById('toast-msg').textContent = '4 templates and 32 catalog items are ready in your account.';
+      document.getElementById('main-toast').classList.add('show');
+      toastTimer = setTimeout(hideToast, 6000);
+    }, 2900);
+  }
+
+  // Toast
+  let toastTimer;
+  function fireToast() {
+    clearTimeout(toastTimer);
+    document.getElementById('toast-title').textContent = 'Saved to catalog';
+    document.getElementById('toast-msg').textContent = 'Drip Edge was added to your catalog.';
+    document.getElementById('main-toast').classList.add('show');
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast() { document.getElementById('main-toast').classList.remove('show'); }
+
+  show('cover');
+</script>
+</body>
+</html>
