@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save as Template — Roofr Prototype</title>
+  <style>
+    @font-face {
+      font-family: 'Circular Std';
+      src: url('CircularStd-Book.woff2') format('woff2');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Circular Std';
+      src: url('CircularStd-Medium.woff2') format('woff2');
+      font-weight: 500;
+    }
+
+    :root {
+      --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 16px; --radius-circle: 999px;
+      --sp-xxs: 6px; --sp-xs: 8px; --sp-sm: 10px; --sp-md: 12px; --sp-lg: 16px;
+      --sp-xl: 20px; --sp-xxl: 24px; --sp-xxxl: 32px;
+      --h3: 20px; --h4: 18px; --body: 16px; --small: 13px; --smaller: 11px;
+      --text-hi: #0B0F12; --text-default: #28373E; --text-muted: #6B7980;
+      --text-inactive: #A6A8A9; --text-link: #126DD8; --text-link-hover: #0D509F;
+      --text-inv: #FFFFFF; --text-danger: #D13242; --text-success: #269F42;
+      --bg-default: #FFFFFF; --bg-secondary: #F4F5F5; --bg-tertiary: #FAFBFB;
+      --bg-quaternary: #EDF0F2; --bg-contrast: #1373E3; --bg-inv: #0B0F12;
+      --bg-overlay: rgba(0,0,0,0.3);
+      --bg-accent-primary: #F3F8FD; --bg-accent-danger: #FDF5F6;
+      --bg-accent-success: #F4FBF6; --bg-accent-upgrade: #FFFAED;
+      --border-default: #E1E4E6; --border-primary: #1373E3;
+      --border-primary-subtle: #89B9F1; --border-danger: #DC3545;
+      --border-danger-subtle: #F5C2C7; --border-success-subtle: #BFE5C7;
+      --icon-primary: #126DD8; --icon-error: #D13242; --icon-success: #28A745;
+      --icon-muted: #6B7980;
+      --btn-2nd: #F4F5F5; --btn-2nd-hover: #E1E4E6;
+      --card-fill: #FFFFFF; --card-hover: #F3F8FD; --card-active: #F3F8FD;
+      --card-border: #E1E4E6; --card-border-hover: #1373E3;
+      --input-border: #E1E4E6; --input-border-hover: #89B9F1; --input-border-active: #1373E3;
+      --toast-s-fill: #F4FBF6; --toast-s-border: #BFE5C7; --toast-s-icon: #28A745;
+      --toast-e-fill: #FDF5F6; --toast-e-border: var(--border-danger); --toast-e-icon: var(--icon-error);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      font-size: var(--body);
+      color: var(--text-default);
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* =============================================
+       TOP BAR
+    ============================================= */
+    .topbar {
+      height: 52px;
+      background: var(--bg-default);
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--sp-xl);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-lg);
+      flex: 1;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-link);
+      font-size: var(--small);
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 150ms ease;
+    }
+    .back-link:hover { color: var(--text-link-hover); }
+    .back-link svg {
+      width: 16px; height: 16px; stroke: currentColor; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .autosave {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--smaller);
+      color: var(--text-inactive);
+    }
+    .autosave svg {
+      width: 13px; height: 13px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .topbar-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topbar-title {
+      font-size: var(--body);
+      font-weight: 500;
+      color: var(--text-hi);
+      white-space: nowrap;
+    }
+
+    .topbar-edit {
+      background: none; border: none; cursor: pointer; padding: 2px;
+      color: var(--text-inactive); display: flex; align-items: center;
+      border-radius: var(--radius-sm);
+      transition: color 150ms ease;
+    }
+    .topbar-edit:hover { color: var(--text-muted); }
+    .topbar-edit svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-xs);
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+    /* =============================================
+       BUTTONS
+    ============================================= */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 0 var(--sp-xl); height: 36px;
+      border-radius: var(--radius-circle);
+      font-family: inherit; font-size: var(--small); font-weight: 500;
+      cursor: pointer; border: none; white-space: nowrap;
+      transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+      line-height: 1;
+    }
+    .btn svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .btn-primary { background: var(--bg-contrast); color: #fff; }
+    .btn-primary:hover { background: #126DD8; }
+    .btn-ghost-nav {
+      background: var(--btn-2nd); color: var(--text-default); border: none;
+    }
+    .btn-ghost-nav:hover { background: var(--btn-2nd-hover); }
+    .btn-alt {
+      background: #E7F1FC; color: #126DD8; border: none;
+    }
+    .btn-alt:hover { background: #B8D5F7; }
+    .btn-icon {
+      width: 32px; height: 32px; padding: 0; border-radius: var(--radius-circle);
+      background: none; border: none; color: var(--text-muted);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .btn-icon:hover { background: var(--btn-2nd); color: var(--text-default); }
+    .btn-icon svg {
+      width: 15px; height: 15px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .btn-alt-icon {
+      width: 36px; height: 36px; padding: 0; border-radius: var(--radius-circle);
+      background: #E7F1FC; border: none; color: #126DD8;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 150ms ease;
+    }
+    .btn-alt-icon:hover { background: #B8D5F7; }
+    .btn-alt-icon svg {
+      width: 15px; height: 15px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .btn-link-sm {
+      background: none; border: none; color: var(--text-link);
+      font-family: inherit; font-size: var(--small); font-weight: 400;
+      cursor: pointer; padding: 0; line-height: 1;
+    }
+    .btn-link-sm:hover { color: var(--text-link-hover); text-decoration: underline; }
+
+    /* Won tag — green variant */
+    .tag-won {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; height: 24px;
+      border-radius: var(--radius-sm);
+      background: #D4EDDA; border: 1px solid #BFE5C7;
+      font-size: var(--small); font-weight: 500; color: #186429;
+      white-space: nowrap;
+    }
+    .tag-won svg {
+      width: 12px; height: 12px; stroke: #186429; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* Tag component — orange variant, Default size */
+    .tag-draft {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; height: 24px;
+      border-radius: var(--radius-sm);
+      background: #FCE7D4;
+      border: 1px solid #FFFFFF;
+      font-size: var(--small); font-weight: 500; line-height: 150%;
+      color: #915219;
+      white-space: nowrap;
+    }
+    .tag-draft svg {
+      width: 16px; height: 16px; stroke: #915219; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* More menu */
+    .more-wrap { position: relative; }
+    .more-menu {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      width: 210px;
+      z-index: 50;
+      overflow: hidden;
+      opacity: 0; pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .more-menu.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .more-item {
+      display: flex; align-items: center; gap: var(--sp-sm);
+      padding: 10px 14px;
+      font-size: var(--small); color: var(--text-default);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .more-item:hover { background: var(--bg-secondary); }
+    .more-item svg {
+      width: 15px; height: 15px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+      color: var(--icon-muted); flex-shrink: 0;
+    }
+    .more-item-divider { height: 1px; background: var(--border-default); }
+
+    /* =============================================
+       LAYOUT
+    ============================================= */
+    .editor {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* =============================================
+       LEFT PANEL
+    ============================================= */
+    .left-panel {
+      width: 216px;
+      background: var(--bg-default);
+      border-right: 1px solid var(--border-default);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .panel-section {
+      padding: var(--sp-lg);
+      border-bottom: 1px solid var(--border-default);
+    }
+    .panel-section:last-child { border-bottom: none; }
+
+    .panel-section-label {
+      font-size: var(--smaller); font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: var(--sp-sm);
+    }
+
+    /* Accordion */
+    .accordion-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .accordion-header .panel-section-label { margin-bottom: 0; }
+    .accordion-meta {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .accordion-count {
+      font-size: var(--smaller); color: var(--text-muted);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-circle);
+      padding: 1px 7px; min-width: 20px; text-align: center; line-height: 18px;
+    }
+    .accordion-chevron {
+      width: 14px; height: 14px; stroke: var(--text-muted); fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+      transition: transform 220ms ease; flex-shrink: 0;
+    }
+    .panel-section.accordion-open .accordion-chevron { transform: rotate(180deg); }
+    .accordion-body {
+      overflow: hidden;
+      max-height: 0; opacity: 0;
+      transition: max-height 250ms ease, opacity 200ms ease, margin-top 200ms ease;
+    }
+    .panel-section.accordion-open .accordion-body {
+      max-height: 300px; opacity: 1; margin-top: var(--sp-sm);
+    }
+
+    .customer-card {
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-md);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--sp-xs);
+    }
+    .customer-name {
+      font-size: var(--body); font-weight: 500; color: var(--text-hi);
+      margin-bottom: 6px;
+    }
+    .customer-info-row {
+      display: flex; align-items: center; gap: 6px;
+      font-size: var(--smaller); color: var(--text-muted); margin-top: 3px;
+    }
+    .customer-info-row svg {
+      width: 12px; height: 12px; stroke: var(--icon-primary); fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .customer-more {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); padding: 0;
+      display: flex; align-items: center;
+    }
+    .customer-more svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .cosigner-btn {
+      margin-top: var(--sp-sm);
+      width: 100%; padding: 7px 12px;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-circle);
+      background: var(--bg-default);
+      font-family: inherit; font-size: var(--smaller); font-weight: 500;
+      color: var(--text-default); cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .cosigner-btn:hover { background: var(--bg-secondary); }
+
+    .related-links { display: flex; flex-direction: column; gap: 6px; }
+    .related-link {
+      display: flex; align-items: center; gap: 6px;
+      font-size: var(--small); color: var(--text-link); cursor: pointer;
+      text-decoration: none;
+      transition: color 150ms ease;
+    }
+    .related-link:hover { color: var(--text-link-hover); }
+    .related-link svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .related-based {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .related-based-label {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-inactive); font-weight: 500; line-height: 1;
+    }
+    .related-based-name {
+      display: flex; align-items: center; gap: 6px;
+      font-size: var(--small); line-height: 150%;
+    }
+    .related-based.clickable { cursor: pointer; }
+    .related-based.clickable .related-based-name { color: var(--text-link); }
+    .related-based.clickable:hover .related-based-name { color: var(--text-link-hover); }
+    .related-based.deleted .related-based-name { color: var(--text-inactive); cursor: default; }
+    .related-based svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .related-based-sub { font-size: var(--smaller); color: var(--text-inactive); display: block; margin-top: 1px; }
+
+    /* Proposal sections */
+    .sections-header {
+      display: flex; align-items: center; gap: 5px;
+      font-size: var(--smaller); font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: var(--sp-xs);
+    }
+    .sections-header svg {
+      width: 13px; height: 13px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .section-item {
+      display: flex; align-items: center;
+      height: 36px; padding: 0 var(--sp-sm);
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background 150ms ease;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      position: relative;
+    }
+    .section-item:hover { background: var(--bg-secondary); }
+    .section-item.active { border-left-color: var(--border-primary); background: var(--bg-secondary); }
+    .section-item.cover-item { background: var(--bg-secondary); font-weight: 500; }
+
+    .section-drag {
+      width: 14px; color: var(--text-inactive); margin-right: 4px;
+      font-size: 11px; letter-spacing: -1px; flex-shrink: 0;
+    }
+    .section-name {
+      font-size: var(--small); color: var(--text-default); flex: 1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .section-item.active .section-name { font-weight: 500; }
+    .section-actions { display: flex; align-items: center; gap: 2px; }
+    .section-btn {
+      width: 22px; height: 22px; border-radius: var(--radius-sm);
+      border: none; background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); transition: background 150ms ease;
+    }
+    .section-btn:hover { background: var(--border-default); }
+    .section-btn svg {
+      width: 12px; height: 12px; stroke: currentColor; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .section-group-label {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-xs) var(--sp-sm) 0;
+    }
+    .section-group-name {
+      font-size: var(--small); font-weight: 500; color: var(--text-default);
+    }
+    .section-group-add {
+      width: 22px; height: 22px; border-radius: var(--radius-sm);
+      border: none; background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--icon-primary); transition: background 150ms ease;
+    }
+    .section-group-add:hover { background: var(--bg-accent-primary); }
+    .section-group-add svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .section-sub {
+      padding-left: 28px;
+    }
+
+    .add-section-btn {
+      margin: var(--sp-sm) var(--sp-lg) var(--sp-lg);
+      border: 1.5px dashed var(--border-default);
+      border-radius: var(--radius-lg);
+      background: none; cursor: pointer;
+      height: 36px; width: calc(100% - 32px);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: var(--small);
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+    .add-section-btn:hover { border-color: var(--border-primary); background: var(--bg-accent-primary); color: var(--text-link); }
+    .add-section-btn svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* Collapse chevron */
+    .panel-collapse {
+      position: absolute; bottom: 80px; right: -12px;
+      width: 24px; height: 24px;
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: 50%;
+      cursor: pointer; z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      transition: background 150ms ease;
+    }
+    .panel-collapse:hover { background: var(--bg-secondary); }
+    .panel-collapse svg {
+      width: 12px; height: 12px; stroke: currentColor; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* =============================================
+       CANVAS AREA
+    ============================================= */
+    .canvas-wrap {
+      flex: 1;
+      overflow-y: auto;
+      background: #E8EAEC;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--sp-xl) 80px 80px var(--sp-xl);
+      position: relative;
+    }
+
+    /* Right sidebar tools */
+    .right-rail {
+      position: fixed;
+      top: 92px; right: 16px;
+      bottom: 0;
+      width: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .right-rail-card {
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px;
+      gap: 2px;
+      pointer-events: all;
+    }
+    .rail-btn {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 8px 6px;
+      width: 52px; border-radius: var(--radius-md);
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted);
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .rail-btn:hover { background: var(--bg-secondary); color: var(--text-default); }
+    .rail-btn svg {
+      width: 18px; height: 18px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .rail-btn span {
+      font-size: 9px; font-weight: 500; color: inherit;
+      text-align: center; line-height: 1.3; white-space: normal;
+      width: 44px;
+    }
+    .rail-btn-badge {
+      position: absolute;
+      top: 5px; right: 3px;
+      width: 10px; height: 10px;
+      background: #28A745;
+      border-radius: 50%;
+      border: 1.5px solid var(--bg-default);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rail-btn-badge svg {
+      width: 6px; height: 6px;
+      stroke: #fff; fill: none;
+      stroke-width: 2.5px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* Section label above document */
+    .section-label {
+      width: 100%;
+      max-width: 760px;
+      font-size: var(--body);
+      font-weight: 500;
+      color: var(--text-hi);
+      margin-bottom: var(--sp-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* The document/paper */
+    .doc {
+      width: 100%;
+      max-width: 760px;
+      background: var(--bg-default);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    /* Cover section inside doc */
+    .doc-cover {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-xl);
+    }
+    .doc-cover-header {
+      display: flex; gap: var(--sp-xl); align-items: flex-start;
+    }
+    .doc-cover-img {
+      width: 120px; height: 80px;
+      background: #EDF0F2; border-radius: var(--radius-md);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      color: #C4C4C4;
+    }
+    .doc-cover-img svg { width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 1.25px; stroke-linecap: round; stroke-linejoin: round; }
+    .doc-cover-details { flex: 1; }
+    .doc-cover-company { font-size: var(--h4); font-weight: 500; color: var(--text-hi); margin-bottom: 4px; }
+    .doc-cover-address { font-size: var(--small); color: var(--text-muted); }
+    .doc-cover-row { display: flex; gap: var(--sp-xl); flex-wrap: wrap; }
+    .doc-cover-field { flex: 1; min-width: 160px; }
+    .doc-cover-field-label { font-size: var(--smaller); color: var(--text-muted); margin-bottom: 2px; }
+    .doc-cover-field-val { font-size: var(--small); color: var(--text-default); }
+
+    /* Option tab bar — sits above the doc card in the gray canvas */
+    .doc-option-bar {
+      width: 100%;
+      max-width: 760px;
+      padding: 0 4px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 40px;
+      margin-bottom: 8px;
+    }
+    .doc-option-name {
+      font-size: var(--small); color: var(--text-muted); font-weight: 500;
+    }
+    .edit-option-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border: 1px solid var(--border-primary);
+      border-radius: var(--radius-circle); background: var(--bg-default);
+      font-family: inherit; font-size: var(--smaller); font-weight: 500;
+      color: var(--text-link); cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .edit-option-btn:hover { background: var(--bg-accent-primary); }
+    .edit-option-btn svg {
+      width: 12px; height: 12px; stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* Option content — flush, no card border */
+    .doc-option-accent { height: 4px; background: #28A745; }
+    .doc-option-header { padding: 20px 32px 16px; }
+    .doc-option-title {
+      font-size: var(--h4); font-weight: 600; color: var(--text-hi);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    }
+    .doc-option-title svg {
+      width: 14px; height: 14px; stroke: var(--text-link); fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .doc-add-summary {
+      font-size: var(--small); color: var(--text-link); cursor: pointer;
+      background: none; border: none; font-family: inherit; padding: 0;
+    }
+    .doc-add-summary:hover { color: var(--text-link-hover); text-decoration: underline; }
+
+    .doc-items { border-top: 1px solid var(--border-default); }
+    .doc-item-header {
+      display: flex; align-items: center;
+      padding: 8px 32px;
+    }
+    .doc-item-header .col-item { flex: 1; font-size: var(--smaller); color: var(--text-muted); }
+    .col-price { width: 90px; font-size: var(--smaller); color: var(--text-muted); text-align: right; }
+    .col-qty   { width: 52px; font-size: var(--smaller); color: var(--text-muted); text-align: right; }
+    .col-sub   { width: 90px; font-size: var(--smaller); color: var(--text-muted); text-align: right; }
+
+    .doc-item {
+      display: flex; align-items: flex-start;
+      padding: 14px 32px;
+      border-bottom: 1px solid var(--border-default);
+    }
+    .doc-item-main { flex: 1; }
+    .doc-item-title { font-size: var(--small); font-weight: 500; color: var(--text-hi); }
+    .doc-item-desc { font-size: var(--smaller); color: var(--text-muted); margin-top: 4px; line-height: 1.55; }
+    .doc-item .col-price,
+    .doc-item .col-qty,
+    .doc-item .col-sub {
+      font-size: var(--small); color: var(--text-default); padding-top: 1px;
+    }
+
+    .doc-item-actions {
+      display: flex; align-items: center; gap: 20px;
+      padding: 14px 32px;
+    }
+    .doc-item-action-btn {
+      display: flex; align-items: center; gap: 4px;
+      font-size: var(--small); color: var(--text-link);
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; padding: 0;
+      transition: color 150ms ease;
+    }
+    .doc-item-action-btn:hover { color: var(--text-link-hover); }
+    .doc-item-action-btn svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .doc-subtotal {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px 32px;
+    }
+    .doc-subtotal-label { font-size: var(--body); font-weight: 600; color: var(--text-hi); }
+    .doc-subtotal-val   { font-size: var(--body); font-weight: 600; color: var(--text-hi); }
+
+    /* Doc footer */
+    .doc-footer { padding: 0 40px 28px; }
+    .doc-footer-rule { height: 1px; background: var(--border-default); margin-bottom: 16px; }
+    .doc-footer-body {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .doc-footer-info {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .doc-footer-info span {
+      font-size: var(--smaller); color: var(--text-muted); line-height: 150%;
+    }
+    .doc-footer-logo {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #2F3030;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--smaller); font-weight: 500; color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* Zoom bar */
+    .zoom-bar {
+      position: fixed;
+      bottom: var(--sp-xl);
+      right: var(--sp-xl);
+      display: flex; align-items: center; gap: 2px;
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-circle);
+      padding: 4px 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      z-index: 5;
+    }
+    .zoom-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+      transition: background 150ms ease;
+    }
+    .zoom-btn:hover { background: var(--bg-secondary); }
+    .zoom-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+    .zoom-val {
+      font-size: var(--small); color: var(--text-default);
+      padding: 0 6px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .zoom-val svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2px; stroke-linecap: round; }
+
+    /* =============================================
+       MODAL
+    ============================================= */
+    .overlay {
+      position: fixed; inset: 0; background: var(--bg-overlay); z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--card-fill);
+      border-radius: 16px;
+      box-shadow: 0 4px 36px rgba(0,0,0,0.12);
+      width: 480px; max-width: calc(100vw - 40px);
+      transform: translateY(10px);
+      transition: transform 200ms ease;
+    }
+    .overlay.active .modal { transform: translateY(0); }
+
+    .modal-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: var(--sp-lg); padding: 24px 32px 0;
+    }
+    .modal-title { font-size: var(--h3); font-weight: 500; color: var(--text-hi); }
+    .modal-sub { font-size: var(--small); color: var(--text-muted); margin-top: 3px; }
+    .modal-x {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--btn-2nd); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); flex-shrink: 0; margin-top: 2px;
+      transition: background 150ms ease;
+    }
+    .modal-x:hover { background: var(--btn-2nd-hover); color: var(--text-default); }
+    .modal-x svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+    .modal-hr { height: 1px; background: var(--border-default); margin-top: 20px; }
+    .modal-body { padding: 20px 32px; display: flex; flex-direction: column; gap: 10px; }
+    .modal-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px 24px;
+      border-top: 1px solid var(--border-default); padding-top: 20px;
+    }
+
+    /* Option cards */
+    .opt-card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-lg);
+      cursor: pointer;
+      transition: border-color 150ms ease, background 150ms ease;
+      background: var(--card-fill);
+    }
+    .opt-card:hover { background: var(--card-hover); border-color: var(--card-border-hover); }
+    .opt-card.sel { background: var(--card-active); border-color: var(--card-border-hover); }
+
+    .opt-top { display: flex; align-items: center; gap: var(--sp-sm); }
+    .opt-radio {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid #C4C4C4; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 150ms ease, background 150ms ease;
+    }
+    .opt-card.sel .opt-radio { border-color: #1373E3; background: #1373E3; }
+    .opt-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #fff;
+      opacity: 0; transform: scale(0.3);
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .opt-card.sel .opt-dot { opacity: 1; transform: scale(1); }
+    .opt-label { font-size: var(--body); font-weight: 500; color: var(--text-hi); }
+    .opt-desc { font-size: var(--small); color: var(--text-muted); padding-left: 27px; margin-top: 4px; line-height: 150%; }
+
+    .opt-expand {
+      padding-left: 27px;
+      max-height: 0; opacity: 0; overflow: hidden;
+      transition: max-height 250ms ease, opacity 200ms ease, margin-top 200ms ease;
+    }
+    .opt-card.sel .opt-expand { max-height: 160px; opacity: 1; margin-top: 10px; }
+
+    .warn {
+      background: var(--bg-accent-danger);
+      border: 1px solid var(--border-danger-subtle);
+      border-radius: var(--radius-md);
+      padding: 9px 12px;
+      display: flex; gap: var(--sp-xs); align-items: flex-start;
+    }
+    .warn svg { width: 14px; height: 14px; stroke: var(--icon-error); fill: none; stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; margin-top: 1px; }
+    .warn-text { font-size: var(--small); color: var(--text-danger); line-height: 150%; }
+
+    /* Form */
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: var(--small); font-weight: 500; color: var(--text-default); }
+    .field-input {
+      height: 44px; padding: 0 12px;
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-sm);
+      font-family: inherit; font-size: var(--body);
+      color: var(--text-default); background: var(--bg-default);
+      outline: none; width: 100%;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .field-input:hover { border-color: var(--input-border-hover); }
+    .field-input:focus { border-color: var(--input-border-active); box-shadow: 0 0 0 2px #89B9F1; }
+    .field-input::placeholder { color: #A6A8A9; }
+    .field-input.err { border-color: var(--border-danger); box-shadow: 0 0 0 2px #E88B94; }
+
+    /* Cancel / Save buttons in modal footer */
+    .btn-cancel {
+      height: 40px; padding: 0 var(--sp-xl); border-radius: var(--radius-circle);
+      background: var(--btn-2nd); border: none; color: var(--text-default);
+      font-family: inherit; font-size: var(--small); font-weight: 500; cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .btn-cancel:hover { background: var(--btn-2nd-hover); }
+    .btn-save {
+      height: 40px; padding: 0 var(--sp-xl); border-radius: var(--radius-circle);
+      background: var(--bg-contrast); border: none; color: #fff;
+      font-family: inherit; font-size: var(--small); font-weight: 500; cursor: pointer;
+      transition: background 150ms ease;
+      display: inline-flex; align-items: center; justify-content: center;
+      position: relative; min-width: 120px;
+    }
+    .btn-save:hover { background: #126DD8; }
+
+    /* Shingle loading state — --components-button-primary-loading: #89B9F1 */
+    @keyframes dot-bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+      30%            { transform: translateY(-3px); opacity: 1; }
+    }
+    .btn-save.loading {
+      background: #89B9F1; /* primary-loading token */
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn-save.loading .btn-save-label { display: none; }
+    .btn-save-loading {
+      display: none;
+      align-items: center;
+      gap: 3px;
+      color: #fff;
+      font-size: var(--small);
+      font-weight: 500;
+    }
+    .btn-save.loading .btn-save-loading { display: inline-flex; }
+    .btn-save-dots {
+      display: inline-flex; align-items: center; gap: 2px; margin-left: 1px;
+    }
+    .btn-save-dots span {
+      width: 3px; height: 3px; border-radius: 50%;
+      background: currentColor;
+      animation: dot-bounce 0.9s ease-in-out infinite;
+    }
+    .btn-save-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .btn-save-dots span:nth-child(3) { animation-delay: 0.30s; }
+
+    /* =============================================
+       SEND DRAWER
+    ============================================= */
+    .send-drawer {
+      position: fixed; top: 92px; right: 0;
+      width: 380px; height: calc(100vh - 92px);
+      background: var(--bg-inv);
+      z-index: 250;
+      display: flex; flex-direction: column;
+      padding: 32px 28px 28px;
+      transform: translateX(100%);
+      transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.25);
+    }
+    .send-drawer.open { transform: translateX(0); }
+    .send-drawer-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .send-drawer-icon svg {
+      width: 18px; height: 18px; stroke: rgba(255,255,255,0.5); fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .send-drawer-title {
+      font-size: var(--body); font-weight: 500; color: #fff;
+      margin-bottom: 10px;
+    }
+    .send-drawer-body {
+      font-size: var(--small); color: rgba(255,255,255,0.55);
+      line-height: 170%; flex: 1;
+    }
+    .send-drawer-body ul {
+      margin: 10px 0 10px 16px;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .send-drawer-body strong { color: rgba(255,255,255,0.8); font-weight: 500; }
+    .send-drawer-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+
+    /* Locked / Won state */
+    .doc-locked .edit-option-btn { display: none !important; }
+    .doc-locked .doc-option-title svg { display: none !important; }
+    .doc-locked .doc-add-summary { display: none !important; }
+    .doc-locked .doc-item-actions { display: none !important; }
+    .doc-locked .doc-subtotal { padding-bottom: 40px; }
+
+    /* =============================================
+       SIM MODAL (prototype info)
+    ============================================= */
+    .sim-overlay {
+      position: fixed; inset: 0; background: var(--bg-overlay); z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+    .sim-overlay.active { opacity: 1; pointer-events: auto; }
+    .sim-modal {
+      background: var(--bg-inv);
+      border-radius: 12px;
+      width: 400px; max-width: calc(100vw - 40px);
+      padding: 28px 32px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+      transform: translateY(10px);
+      transition: transform 200ms ease;
+    }
+    .sim-overlay.active .sim-modal { transform: translateY(0); }
+    .sim-modal-icon svg {
+      width: 20px; height: 20px; stroke: rgba(255,255,255,0.4); fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .sim-modal-body {
+      font-size: var(--small); color: rgba(255,255,255,0.75); line-height: 160%;
+    }
+    .sim-modal-body strong { color: #fff; font-weight: 500; }
+    .btn-tertiary {
+      align-self: flex-start;
+      background: none; border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius-circle);
+      color: rgba(255,255,255,0.6);
+      font-family: inherit; font-size: var(--small); font-weight: 500;
+      padding: 0 var(--sp-lg); height: 36px; cursor: pointer;
+      transition: border-color 150ms ease, color 150ms ease;
+    }
+    .btn-tertiary:hover { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.9); }
+
+    /* =============================================
+       TOAST
+    ============================================= */
+    .toast {
+      position: fixed; top: 56px; left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      z-index: 500; width: 320px;
+      padding: 11px 14px;
+      border-radius: var(--radius-lg); border: 1px solid var(--toast-s-border);
+      background: var(--toast-s-fill);
+      display: flex; align-items: center; gap: 10px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 150ms ease-out, transform 150ms ease-out;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    .toast--error { border-color: var(--toast-e-border); background: var(--toast-e-fill); }
+    .toast-icon svg { width: 22px; height: 22px; stroke: var(--toast-s-icon); fill: none; stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round; }
+    .toast--error .toast-icon svg { stroke: var(--toast-e-icon); }
+    .toast-text { flex: 1; }
+    .toast-title { font-size: var(--small); font-weight: 500; color: var(--text-hi); }
+    .toast-msg { font-size: var(--smaller); color: var(--text-muted); margin-top: 1px; }
+
+    /* =============================================
+       DEMO PANEL
+    ============================================= */
+    .demo-wrap {
+      position: fixed; bottom: 20px; right: 20px; z-index: 600;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    }
+    .demo-panel {
+      background: #141a1d; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg); padding: 16px;
+      display: none; flex-direction: column; gap: 13px; width: 226px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+    .demo-panel.open { display: flex; }
+    .demo-panel-title { font-size: var(--smaller); font-weight: 500; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.07em; }
+    .demo-row { display: flex; flex-direction: column; gap: 4px; }
+    .demo-row-label { font-size: var(--smaller); color: rgba(255,255,255,0.4); }
+    .demo-select {
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm); color: rgba(255,255,255,0.85);
+      font-family: inherit; font-size: var(--small);
+      padding: 6px 8px; width: 100%; cursor: pointer;
+    }
+    .demo-select option { background: #141a1d; }
+    .demo-toggle {
+      background: #141a1d; border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--radius-circle); color: rgba(255,255,255,0.7);
+      font-family: inherit; font-size: var(--smaller); font-weight: 500;
+      padding: 7px 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: background 150ms ease;
+    }
+    .demo-toggle:hover { background: #1e2528; }
+    .demo-toggle svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* =============================================
+       SHINGLE HINT COMPONENT
+       Source: --components-hint-toast-banner-*
+    ============================================= */
+    :root {
+      --hint-info-fill:    #F3F8FD; /* primary-fill */
+      --hint-info-border:  #89B9F1; /* primary-outline */
+      --hint-info-icon:    #126DD8; /* primary-icon */
+      --hint-warn-fill:    #FAFBFB; /* tertiary-fill */
+      --hint-warn-border:  #E1E4E6; /* tertiary-outline */
+      --hint-warn-icon:    #C26D22; /* warning-icon */
+      --hint-body-color:   #28373E; /* muted-body */
+    }
+
+    .modal-hint {
+      display: flex; align-items: flex-start;
+      gap: var(--sp-sm);
+      padding: var(--sp-sm) var(--sp-md);
+      border: 1px solid; border-radius: var(--radius-lg);
+      width: 100%;
+    }
+    .modal-hint-icon {
+      width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.75px; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .modal-hint-text {
+      font-size: var(--small); line-height: 150%;
+      color: var(--hint-body-color); font-weight: 400;
+    }
+    .modal-hint--info,
+    .modal-hint--warning {
+      background: var(--hint-warn-fill);    /* tertiary-fill: #FAFBFB */
+      border-color: var(--hint-warn-border); /* tertiary-outline: #E1E4E6 */
+      color: var(--hint-warn-icon);          /* warning-icon: #C26D22 */
+    }
+
+    /* Toast action link — catalog items */
+    .toast-link {
+      display: none; align-items: center; flex-shrink: 0; padding-left: 2px;
+    }
+    .toast-link.show { display: flex; }
+    .toast-link a {
+      font-size: var(--small); font-weight: 500;
+      color: var(--text-link); text-decoration: none; white-space: nowrap;
+    }
+    .toast-link a:hover { color: var(--text-link-hover); text-decoration: underline; }
+    .toast-dismiss {
+      background: none; border: none; cursor: pointer; padding: 2px;
+      color: var(--icon-muted); flex-shrink: 0; display: flex; align-items: center;
+      border-radius: var(--radius-sm); transition: color 150ms ease;
+    }
+    .toast-dismiss:hover { color: var(--text-default); }
+    .toast-dismiss svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2px; stroke-linecap: round; }
+
+    /* =============================================
+       PROTOTYPE NAV BAR
+    ============================================= */
+    .proto-nav {
+      height: 40px;
+      background: #0B0F12;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 14px;
+      flex-shrink: 0;
+      z-index: 1000;
+    }
+    .proto-nav-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.28);
+      white-space: nowrap;
+      letter-spacing: 0.03em;
+    }
+    .proto-nav-sep {
+      width: 1px;
+      height: 14px;
+      background: rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .proto-nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .proto-tab {
+      height: 26px;
+      padding: 0 10px;
+      border-radius: 4px;
+      border: none;
+      background: none;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+      white-space: nowrap;
+    }
+    .proto-tab:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.75); }
+    .proto-tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+
+    body.on-cover .topbar { display: none; }
+    body.on-cover .demo-wrap,
+    body.on-cover .zoom-bar,
+    body.on-cover .right-rail { display: none !important; }
+
+    /* =============================================
+       COVER SCREEN
+    ============================================= */
+    .cover-screen {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      padding: 48px 80px 80px;
+    }
+    .cover-screen.active { display: block; }
+
+    .cover-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .cover-hero {
+      background: var(--bg-inv);
+      border-radius: 12px;
+      padding: 36px 40px 32px;
+    }
+    .cover-hero-eyebrow {
+      font-size: var(--smaller);
+      font-weight: 500;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .cover-hero-title {
+      font-size: 26px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .cover-hero-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: var(--small);
+      color: rgba(255,255,255,0.35);
+    }
+    .cover-hero-meta code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: rgba(255,255,255,0.55);
+    }
+    .cover-dot { opacity: 0.4; }
+    .cover-hero-stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .cover-stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.07);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+    }
+    .cover-stat-num {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1;
+    }
+    .cover-stat-label {
+      font-size: var(--smaller);
+      color: rgba(255,255,255,0.45);
+      line-height: 1.35;
+    }
+    .cover-stat-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .cover-stat-dot--green { background: #28A745; }
+    .cover-stat-dot--red   { background: #D13242; }
+
+    .cover-section-label {
+      font-size: var(--smaller);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .cover-problem {
+      font-size: var(--small);
+      color: var(--text-default);
+      line-height: 175%;
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+    }
+    .cover-problem strong { color: var(--text-hi); font-weight: 500; }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .cover-col {
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .cover-col-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 18px;
+      font-size: var(--small);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border-default);
+    }
+    .cover-col-header--done  { background: var(--bg-accent-success); color: #186429; }
+    .cover-col-header--missing { background: var(--bg-accent-danger); color: var(--text-danger); }
+    .cover-col-count {
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .cover-col-header--done .cover-col-count    { background: #28A745; color: #fff; }
+    .cover-col-header--missing .cover-col-count { background: var(--text-danger); color: #fff; }
+
+    .cover-state-list { padding: 4px 0; }
+    .cover-state-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--bg-secondary);
+    }
+    .cover-state-item:last-child { border-bottom: none; }
+    .cover-state-icon { font-size: 12px; flex-shrink: 0; margin-top: 2px; line-height: 1; }
+    .cover-state-name {
+      font-size: var(--small); font-weight: 500; color: var(--text-hi); line-height: 1.4;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .cover-state-desc { font-size: var(--smaller); color: var(--text-muted); margin-top: 3px; line-height: 150%; }
+
+    .cover-badge {
+      display: inline-flex; align-items: center;
+      padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 600; flex-shrink: 0;
+    }
+    .badge-high { background: #FDF5F6; color: var(--text-danger); border: 1px solid #F5C2C7; }
+    .badge-med  { background: #FFFAED; color: #8B5E1A; border: 1px solid #FCDBA1; }
+    .badge-low  { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-default); }
+
+    .cover-question {
+      background: var(--bg-accent-upgrade);
+      border: 1px solid #FCDBA1;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+    }
+    .cover-question-label {
+      font-size: var(--smaller); font-weight: 500; color: #8B5E1A;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+    }
+    .cover-question-list {
+      display: flex; flex-direction: column; gap: 5px;
+      list-style: none; padding: 0; margin: 0;
+    }
+    .cover-question-list li {
+      font-size: var(--smaller); color: #6B5020; line-height: 150%;
+      padding-left: 12px; position: relative;
+    }
+    .cover-question-list li::before {
+      content: '–'; position: absolute; left: 0; color: #FCDBA1;
+    }
+
+    .cover-sources {
+      font-size: var(--smaller);
+      color: var(--text-muted);
+      line-height: 175%;
+      padding: 16px 20px;
+      background: var(--bg-default);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+    }
+    .cover-sources strong { color: var(--text-default); font-weight: 500; }
+    .cover-sources code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 10px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--text-default);
+    }
+  </style>
+</head>
+<body>
+
+<!-- PROTOTYPE NAV -->
+<div class="proto-nav">
+  <span class="proto-nav-label">Save as Template — Prototype</span>
+  <div class="proto-nav-sep"></div>
+  <div class="proto-nav-tabs">
+    <button class="proto-tab" id="tab-cover"    onclick="showScreen('cover')">Cover</button>
+    <button class="proto-tab" id="tab-default"  onclick="showScreen('default')">Default</button>
+    <button class="proto-tab" id="tab-dual"     onclick="showScreen('dual')">Dual modal</button>
+    <button class="proto-tab" id="tab-single"   onclick="showScreen('single')">Single modal</button>
+    <button class="proto-tab" id="tab-presend"  onclick="showScreen('presend')">Pre-send</button>
+    <button class="proto-tab" id="tab-saving"      onclick="showScreen('saving')">Saving…</button>
+    <button class="proto-tab" id="tab-error-toast" onclick="showScreen('error-toast')">Error toast</button>
+    <div class="proto-nav-sep"></div>
+    <button class="proto-tab" id="tab-profitability" onclick="showScreen('profitability')">Profitability</button>
+    <button class="proto-tab" id="tab-measurement"   onclick="showScreen('measurement')">Measurement</button>
+    <button class="proto-tab" id="tab-catalog"       onclick="showScreen('catalog')">Catalog toast</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to proposals
+    </a>
+    <span class="autosave">
+      <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Changes auto-saved
+    </span>
+  </div>
+
+  <div class="topbar-center">
+    <span class="topbar-title" id="topbarTitle">35 Daniel Street, Plattsville, ON N0J 1S0</span>
+    <button class="topbar-edit">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+  </div>
+
+  <div class="topbar-right">
+    <span class="tag-draft" id="statusDraft">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Draft
+    </span>
+    <div class="more-wrap">
+      <button class="btn-alt-icon" id="moreBtn" onclick="toggleMore()">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      </button>
+      <div class="more-menu" id="moreMenu">
+        <div class="more-item" onclick="openModal()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Save as Template
+        </div>
+        <div class="more-item">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M7 10L12 15M12 15L17 10M12 15V3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download PDF
+        </div>
+        <div class="more-item" style="color:var(--text-danger)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--icon-error)"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Delete proposal
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-alt" id="previewBtn">Preview</button>
+    <button class="btn btn-primary" id="sendBtn" onclick="openPresend()">Send</button>
+  </div>
+</div>
+
+<!-- EDITOR BODY -->
+<div class="editor" id="editorBody">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <!-- Customer -->
+    <div class="panel-section">
+      <div class="panel-section-label">Customer</div>
+      <div class="customer-card">
+        <div>
+          <div class="customer-name">Marcus Johnson</div>
+          <div class="customer-info-row">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            marcus.j@gmail.com
+          </div>
+          <div class="customer-info-row">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 5.55 5.55l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
+            (416) 555-0192
+          </div>
+        </div>
+        <button class="customer-more">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
+      <button class="cosigner-btn">Add cosigner</button>
+    </div>
+
+    <!-- Related -->
+    <div class="panel-section accordion-open" id="relatedSection">
+      <div class="accordion-header" onclick="toggleRelated()">
+        <span class="panel-section-label">Related</span>
+        <div class="accordion-meta">
+          <span class="accordion-count" id="relatedCount">2</span>
+          <svg class="accordion-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="accordion-body">
+        <div class="related-links">
+          <a class="related-link">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            View job details
+          </a>
+          <a class="related-link">
+            <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View measurement
+          </a>
+          <div class="related-based" id="basedOnRow" style="display:none; margin-top: 6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proposal sections -->
+    <div class="panel-section" style="flex:1; padding-bottom: 0;">
+      <div class="sections-header">
+        Proposal sections
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+
+      <div class="section-item cover-item">
+        <span class="section-name">Cover</span>
+      </div>
+
+      <div class="section-group-label">
+        <span class="section-group-name">
+          <span class="section-drag" style="font-size:13px;color:#C4C4C4;margin-right:2px">⠿</span>
+          Estimate
+        </span>
+        <button class="section-group-add">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="section-item active section-sub">
+        <span class="section-name">Asphalt Option</span>
+        <div class="section-actions">
+          <button class="section-btn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="section-item section-sub">
+        <span class="section-name" style="color:var(--text-muted)">Summary</span>
+      </div>
+
+      <div class="section-item cover-item" style="margin-top:2px;">
+        <span class="section-drag" style="font-size:13px;color:#C4C4C4;margin-right:2px">⠿</span>
+        <span class="section-name">Photos</span>
+        <div class="section-actions">
+          <button class="section-btn">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button class="add-section-btn">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+
+    <button class="panel-collapse">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-wrap" onclick="closeMore()">
+    <!-- Option bar — above the doc card -->
+    <div class="doc-option-bar">
+      <span class="doc-option-name">Option 1</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-icon" style="width:28px;height:28px;">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <button class="edit-option-btn">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit option
+        </button>
+      </div>
+    </div>
+
+    <div class="doc">
+      <!-- Option content -->
+      <div class="doc-option-accent"></div>
+      <div class="doc-option-header">
+        <div class="doc-option-title">
+          Option 1
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <button class="doc-add-summary">Add summary</button>
+      </div>
+      <div class="doc-items">
+        <div class="doc-item-header">
+          <span class="col-item">Item</span>
+          <span class="col-price">Unit price</span>
+          <span class="col-qty">Qty</span>
+          <span class="col-sub">Subtotal</span>
+        </div>
+        <div class="doc-item">
+          <div class="doc-item-main">
+            <div class="doc-item-title">Architectural Shingle R&amp;R</div>
+            <div class="doc-item-desc">Owens Corning Duration — Estate Gray</div>
+          </div>
+          <div class="col-price">$380</div>
+          <div class="col-qty">32 sq</div>
+          <div class="col-sub">$12,160</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-item-main">
+            <div class="doc-item-title">Ice &amp; Water Shield</div>
+            <div class="doc-item-desc">Eaves, valleys, penetrations</div>
+          </div>
+          <div class="col-price">$95</div>
+          <div class="col-qty">8 sq</div>
+          <div class="col-sub">$760</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-item-main">
+            <div class="doc-item-title">Ridge Cap</div>
+            <div class="doc-item-desc">High-profile hip and ridge</div>
+          </div>
+          <div class="col-price">$320</div>
+          <div class="col-qty">1 bx</div>
+          <div class="col-sub">$320</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-item-main">
+            <div class="doc-item-title">Drip Edge</div>
+            <div class="doc-item-desc">Painted to match fascia</div>
+          </div>
+          <div class="col-price">$3.50</div>
+          <div class="col-qty">180 lf</div>
+          <div class="col-sub">$630</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-item-main">
+            <div class="doc-item-title">Haul Away &amp; Disposal</div>
+            <div class="doc-item-desc">Full cleanup, magnet sweep</div>
+          </div>
+          <div class="col-price">$350</div>
+          <div class="col-qty">1 ls</div>
+          <div class="col-sub">$350</div>
+        </div>
+      </div>
+      <div class="doc-item-actions">
+        <button class="doc-item-action-btn">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add item
+        </button>
+        <button class="doc-item-action-btn">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add section heading
+        </button>
+        <button class="doc-item-action-btn">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add upgrade
+        </button>
+      </div>
+      <div class="doc-subtotal">
+        <span class="doc-subtotal-label">Estimate subtotal</span>
+        <span class="doc-subtotal-val">$14,220</span>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <div class="doc-footer-rule"></div>
+        <div class="doc-footer-body">
+          <div class="doc-footer-info">
+            <span>Jim McMahon</span>
+            <span>Elite Team</span>
+            <span>(416) 458-5987</span>
+            <span>elite@roofr.com</span>
+          </div>
+          <div class="doc-footer-logo">Logo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COVER SCREEN -->
+<div class="cover-screen" id="coverScreen">
+  <div class="cover-inner">
+
+    <!-- Hero -->
+    <div class="cover-hero">
+      <div class="cover-hero-eyebrow">States Audit · Prototype v1</div>
+      <h1 class="cover-hero-title">Save Proposal as Template</h1>
+      <div class="cover-hero-meta">
+        <span>Audited May 13, 2026</span>
+        <span class="cover-dot">·</span>
+        <code>/proposals/proposal/{id}/quote-details/{id}</code>
+        <span class="cover-dot">·</span>
+        <span>Proposal editor</span>
+      </div>
+      <div class="cover-hero-stats">
+        <div class="cover-stat">
+          <span class="cover-stat-dot cover-stat-dot--green"></span>
+          <div>
+            <div class="cover-stat-num">15</div>
+            <div class="cover-stat-label">States designed</div>
+          </div>
+        </div>
+        <div class="cover-stat">
+          <span class="cover-stat-dot cover-stat-dot--red"></span>
+          <div>
+            <div class="cover-stat-num">0</div>
+            <div class="cover-stat-label">States still needed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Problem -->
+    <div>
+      <div class="cover-section-label">Problem Statement</div>
+      <div class="cover-problem">
+        Users refine proposals on real jobs — adjusting line items, restructuring sections, tweaking terms — but have no way to carry those improvements back into their templates. The only workarounds are manually rebuilding the template or starting from scratch. Good work on proposals is a dead end. <strong>Save as Template</strong> adds a new action to the proposal editor's <strong>quote-details</strong> page, letting users overwrite the source template or create a new one — with permission-aware branching for owners vs. standard users, and optional nudges when sending or leaving a scratch proposal.
+      </div>
+    </div>
+
+    <!-- States grid -->
+    <div class="cover-grid">
+
+      <!-- Left: Designed -->
+      <div class="cover-col">
+        <div class="cover-col-header cover-col-header--done">
+          <span class="cover-col-count">15</span>
+          In this prototype
+        </div>
+        <div class="cover-state-list">
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Default — 3-dot menu entry</div>
+              <div class="cover-state-desc">"Save as Template" in the more menu; visible to all users on any proposal status</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Dual-option modal</div>
+              <div class="cover-state-desc">Owner on template-originated proposal — update original or save as new</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Overwrite warning</div>
+              <div class="cover-state-desc">Inline danger callout when "Update [template]" option is selected</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Single-option modal</div>
+              <div class="cover-state-desc">Standard user or scratch proposal — name input only, no overwrite path</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Empty name validation</div>
+              <div class="cover-state-desc">Red border + refocus when Save is clicked with no template name entered</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Pre-send prompt</div>
+              <div class="cover-state-desc">"Save as template before sending?" nudge before the send drawer opens</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Toast — new template saved</div>
+              <div class="cover-state-desc">Success toast with name + "Ready to use on future proposals"</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Toast — template updated</div>
+              <div class="cover-state-desc">Success toast with "Existing proposals are unaffected"</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Source template deleted</div>
+              <div class="cover-state-desc">Sidebar shows "Template no longer available" with no clickable link</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Won / locked state</div>
+              <div class="cover-state-desc">Post-send read-only view — Save as Template is no longer accessible</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Profitability hint</div>
+              <div class="cover-state-desc">Shingle info hint in modal — profitability settings won't carry into the template</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Measurement section warning</div>
+              <div class="cover-state-desc">Shingle warning hint in modal — measurement report section will be dropped from the template</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Catalog items toast</div>
+              <div class="cover-state-desc">Success toast with catalog item count and "View catalog →" link after template is saved</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Saving in progress</div>
+              <div class="cover-state-desc">Save Template button in Shingle loading state — spinner replaces label, button dims to primary-loading (#89B9F1), Cancel disabled</div>
+            </div>
+          </div>
+          <div class="cover-state-item">
+            <span class="cover-state-icon">✅</span>
+            <div>
+              <div class="cover-state-name">Error toast — save failed</div>
+              <div class="cover-state-desc">Shingle error toast: "Save failed. Please try again." Shown after a failed save or async timeout</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Decisions + remaining gaps -->
+      <div class="cover-col">
+        <div class="cover-col-header cover-col-header--missing">
+          <span class="cover-col-count">0</span>
+          Still needed
+        </div>
+        <div class="cover-state-list">
+          <div style="font-size:var(--smaller);color:var(--text-muted);padding:4px 0;">All states designed.</div>
+        </div>
+
+        <!-- Decisions log -->
+        <div style="border-top:1px solid var(--border-default); padding: 12px 18px 8px;">
+          <div style="font-size:var(--smaller);font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);margin-bottom:8px;">Resolved decisions</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="font-size:var(--smaller);color:var(--text-muted);line-height:150%;">
+              <strong style="color:var(--text-default);font-weight:500;">Permission denied</strong> — "Save as Template" hidden entirely for users without PROPOSALS_TEMPLATES_CREATE. They only see the linked template in the sidebar.
+            </div>
+            <div style="font-size:var(--smaller);color:var(--text-muted);line-height:150%;">
+              <strong style="color:var(--text-default);font-weight:500;">Duplicate names</strong> — Allowed. No validation needed.
+            </div>
+            <div style="font-size:var(--smaller);color:var(--text-muted);line-height:150%;">
+              <strong style="color:var(--text-default);font-weight:500;">Long template name</strong> — System truncates, full name on tooltip hover.
+            </div>
+            <div style="font-size:var(--smaller);color:var(--text-muted);line-height:150%;">
+              <strong style="color:var(--text-default);font-weight:500;">Pre-send scope</strong> — Only shows for proposals created without a template. Once per proposal.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Open questions -->
+    <div>
+      <div class="cover-section-label">Open Questions</div>
+      <div class="cover-question">
+        <div class="cover-question-label">From the PRD</div>
+        <ul class="cover-question-list">
+          <li>Where exactly does "Save as Template" live in the quote-details page? 3-dot menu only, or also a visible button in the top bar?</li>
+          <li>What happens if the original template was deleted and an owner clicks "Save as Template"? Does Path A silently fall back to Path B, or show an error?</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sources -->
+    <div class="cover-sources">
+      <strong>Sources:</strong> roofr/roofr-dev —
+      <code>apis/Template.js</code>
+      <code>ProposalPolicy.php</code>
+      <code>CreateTemplateFromProposalService.php</code>
+      <code>TemplateStoreService.php</code>
+      <code>ProposalActionButtons.tsx</code>
+      · Figma: none provided · Jira: none provided ·
+      Page: <code>/dashboard/team/{id}/proposals/proposal/{id}/quote-details/{id}</code>
+    </div>
+
+  </div>
+</div>
+
+<!-- RIGHT RAIL -->
+<div class="right-rail">
+  <div class="right-rail-card">
+    <button class="rail-btn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Estimate settings</span>
+    </button>
+    <button class="rail-btn">
+      <div class="rail-btn-badge"><svg viewBox="0 0 8 8"><polyline points="1.5,4 3,5.5 6.5,2"/></svg></div>
+      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <span>Supplier</span>
+    </button>
+  </div>
+</div>
+
+<!-- Zoom bar -->
+<div class="zoom-bar">
+  <button class="zoom-btn"><svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  <span class="zoom-val">100% <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+  <button class="zoom-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="handleBgClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Save as Template</div>
+        <div class="modal-sub" id="modalSub"></div>
+      </div>
+      <button class="modal-x" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-hr"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="cancelBtn" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="saveBtn" onclick="handleSave()">
+        <span class="btn-save-label">Save Template</span>
+        <span class="btn-save-loading">Saving<span class="btn-save-dots"><span></span><span></span><span></span></span></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PRE-SEND MODAL -->
+<div class="overlay" id="presendOverlay" onclick="handlePresendBgClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Save as a template before sending?</div>
+        <div class="modal-sub">Templates let you reuse this proposal's structure on future jobs.</div>
+      </div>
+      <button class="modal-x" onclick="presendNotNow()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-hr"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="presendNotNow()">Not now</button>
+      <button class="btn-save" onclick="presendSaveTemplate()">Save as Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEND DRAWER -->
+<div class="send-drawer" id="sendDrawer">
+  <div class="send-drawer-icon">
+    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+  </div>
+  <div class="send-drawer-title">This would open the Send drawer</div>
+  <div class="send-drawer-body">
+    In the live product, clicking <strong>Send</strong> opens a panel where you can:
+    <ul>
+      <li>Enter recipient email addresses</li>
+      <li>Write a personal message</li>
+      <li>Preview before sending</li>
+    </ul>
+    Once confirmed, the proposal is emailed to the customer with a link to view and sign it online. The status moves to <strong>Sent</strong>, and once the customer signs, the proposal is moved to <strong>Won</strong> and locks for editing.
+  </div>
+  <div class="send-drawer-actions">
+    <button class="btn-tertiary" onclick="simulateSend()">Simulate send proposal</button>
+    <button class="btn-tertiary" style="opacity:0.45;" onclick="closeSendDrawer()">Close</button>
+  </div>
+</div>
+
+<!-- SIM MODAL -->
+<div class="sim-overlay" id="simOverlay" onclick="handleSimBgClick(event)">
+  <div class="sim-modal">
+    <div class="sim-modal-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </div>
+    <div class="sim-modal-body" id="simModalBody"></div>
+    <button class="btn-tertiary" onclick="closeSimModal()">Close modal</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon">
+    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  </div>
+  <div class="toast-text">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-msg" id="toastMsg"></div>
+  </div>
+  <div class="toast-link" id="toastLink">
+    <a id="toastLinkAnchor" href="#" onclick="return false;">View catalog</a>
+  </div>
+  <button class="toast-dismiss" id="toastDismiss" onclick="dismissToast()" aria-label="Dismiss">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<!-- DEMO CONTROLS -->
+<div class="demo-wrap">
+  <div class="demo-panel" id="demoPanel">
+    <span class="demo-panel-title">Demo Controls</span>
+    <div class="demo-row">
+      <span class="demo-row-label">User role</span>
+      <select class="demo-select" id="roleSelect" onchange="applyScenario()">
+        <option value="owner">Owner / Manager</option>
+        <option value="standard">Standard User</option>
+      </select>
+    </div>
+    <div class="demo-row">
+      <span class="demo-row-label">Proposal origin</span>
+      <select class="demo-select" id="originSelect" onchange="applyScenario()">
+        <option value="template">Created from a template</option>
+        <option value="scratch">Created from scratch</option>
+      </select>
+    </div>
+    <div class="demo-row">
+      <span class="demo-row-label">Entry point</span>
+      <select class="demo-select" id="entrySelect" onchange="applyScenario()">
+        <option value="menu">3-dot menu in top bar</option>
+      </select>
+    </div>
+    <div class="demo-row" id="templateExistsRow">
+      <span class="demo-row-label">Template status</span>
+      <select class="demo-select" id="templateExistsSelect" onchange="applyScenario()">
+        <option value="true">Template still exists</option>
+        <option value="false">Template deleted</option>
+      </select>
+    </div>
+    <div class="demo-row">
+      <span class="demo-row-label">Has profitability</span>
+      <select class="demo-select" id="profitSelect" onchange="applyScenario()">
+        <option value="false">No</option>
+        <option value="true">Yes</option>
+      </select>
+    </div>
+    <div class="demo-row">
+      <span class="demo-row-label">Has measurement section</span>
+      <select class="demo-select" id="measureSelect" onchange="applyScenario()">
+        <option value="false">No</option>
+        <option value="true">Yes</option>
+      </select>
+    </div>
+    <div class="demo-row">
+      <span class="demo-row-label">Catalog items on save</span>
+      <select class="demo-select" id="catalogSelect" onchange="applyScenario()">
+        <option value="0">None</option>
+        <option value="3">3 items added</option>
+        <option value="7">7 items added</option>
+      </select>
+    </div>
+  </div>
+  <button class="demo-toggle" onclick="document.getElementById('demoPanel').classList.toggle('open')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    Demo controls
+  </button>
+</div>
+
+<script>
+  let role = 'owner';
+  let origin = 'template';
+  let entry = 'menu';
+  let selectedOpt = 'update';
+  let templateExists = true;
+  let fromPresend = false;
+  let toastTimer = null;
+  let hasProfit = false;
+  let hasMeasurement = false;
+  let catalogItems = 0;
+
+  function applyScenario() {
+    role   = document.getElementById('roleSelect').value;
+    origin = document.getElementById('originSelect').value;
+    entry  = document.getElementById('entrySelect').value;
+    templateExists = document.getElementById('templateExistsSelect').value === 'true';
+    hasProfit      = document.getElementById('profitSelect').value === 'true';
+    hasMeasurement = document.getElementById('measureSelect').value === 'true';
+    catalogItems   = parseInt(document.getElementById('catalogSelect').value, 10);
+
+    // Show/hide template-exists control (only relevant when origin is template)
+    document.getElementById('templateExistsRow').style.display =
+      origin === 'template' ? 'flex' : 'none';
+
+    updateBasedOn();
+  }
+
+  function updateBasedOn() {
+    const el = document.getElementById('basedOnRow');
+    const templateName = 'Asphalt Shingle Standard';
+
+    if (origin !== 'template') {
+      el.style.display = 'none';
+      document.getElementById('relatedCount').textContent = '2';
+      return;
+    }
+    el.style.display = 'flex';
+    document.getElementById('relatedCount').textContent = '3';
+
+    const templateSVG = `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+
+    if (templateExists) {
+      const readOnly = role !== 'owner';
+      el.className = 'related-based clickable';
+      el.setAttribute('onclick', `simulateNewTab('${templateName}', ${readOnly})`);
+      el.innerHTML = `
+        <span class="related-based-label">Template</span>
+        <span class="related-based-name">${templateSVG}${templateName}</span>
+      `;
+    } else {
+      el.className = 'related-based deleted';
+      el.removeAttribute('onclick');
+      el.innerHTML = `
+        <span class="related-based-label">Template</span>
+        <span class="related-based-name">
+          ${templateSVG}
+          <span>${templateName}<span class="related-based-sub">Template no longer available</span></span>
+        </span>
+      `;
+    }
+  }
+
+  function toggleRelated() {
+    document.getElementById('relatedSection').classList.toggle('accordion-open');
+  }
+
+  function simulateNewTab(name, readOnly) {
+    const body = document.getElementById('simModalBody');
+    if (readOnly) {
+      body.innerHTML = `In the live product, clicking this link would open a <strong>read-only preview</strong> of <strong>"${name}"</strong> in a new tab. Members can view the template but cannot make edits.`;
+    } else {
+      body.innerHTML = `In the live product, clicking this link would open <strong>"${name}"</strong> in a new tab, where you can edit the template directly. Changes to the template won't affect proposals already created from it.`;
+    }
+    document.getElementById('simOverlay').classList.add('active');
+  }
+
+  function closeSimModal() {
+    document.getElementById('simOverlay').classList.remove('active');
+  }
+
+  function handleSimBgClick(e) {
+    if (e.target === document.getElementById('simOverlay')) closeSimModal();
+  }
+
+  // More dropdown
+  function toggleMore() {
+    document.getElementById('moreMenu').classList.toggle('open');
+  }
+  function closeMore() {
+    document.getElementById('moreMenu').classList.remove('open');
+  }
+  document.getElementById('moreBtn').addEventListener('click', e => e.stopPropagation());
+  document.getElementById('moreMenu').addEventListener('click', e => e.stopPropagation());
+
+  // Modal
+  function openModal() {
+    closeMore();
+
+    const dual = (role === 'owner') && (origin === 'template');
+    buildModal(dual);
+    document.getElementById('overlay').classList.add('active');
+
+    if (!dual) {
+      setTimeout(() => document.getElementById('nameInput')?.focus(), 220);
+    }
+  }
+
+  function buildModal(dual) {
+    const sub = document.getElementById('modalSub');
+    const body = document.getElementById('modalBody');
+
+    const hintsMkup = buildHints();
+
+    if (dual) {
+      selectedOpt = 'update';
+      sub.textContent = 'Choose how to save this proposal.';
+      body.innerHTML = `
+        ${hintsMkup}
+        <div class="opt-card sel" id="cardA" onclick="pickOpt('update')">
+          <div class="opt-top">
+            <div class="opt-radio"><div class="opt-dot"></div></div>
+            <span class="opt-label">Update "Asphalt Shingle Standard"</span>
+          </div>
+          <div class="opt-desc">Overwrites the existing template with this proposal's current content.</div>
+          <div class="opt-expand">
+            <div class="warn">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span class="warn-text">This overwrites the template. Proposals already created from it won't be changed.</span>
+            </div>
+          </div>
+        </div>
+        <div class="opt-card" id="cardB" onclick="pickOpt('new')">
+          <div class="opt-top">
+            <div class="opt-radio"><div class="opt-dot"></div></div>
+            <span class="opt-label">Save as new template</span>
+          </div>
+          <div class="opt-desc">Create a brand-new template without changing the original.</div>
+          <div class="opt-expand">
+            <div class="field">
+              <label class="field-label">Template name</label>
+              <input class="field-input" type="text" id="nameInput" placeholder="e.g. Asphalt Shingle — Spring 2026" />
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      selectedOpt = 'new';
+      sub.textContent = origin === 'template'
+        ? 'Create a new template from this proposal.'
+        : 'Save this proposal\'s structure as a reusable template.';
+      body.innerHTML = `
+        ${hintsMkup}
+        <div class="field">
+          <label class="field-label">Template name</label>
+          <input class="field-input" type="text" id="nameInput" placeholder="e.g. Asphalt Shingle Standard" />
+        </div>
+      `;
+    }
+  }
+
+  function buildHints() {
+    let html = '';
+    if (hasMeasurement) {
+      html += `
+        <div class="modal-hint modal-hint--warning">
+          <svg class="modal-hint-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span class="modal-hint-text">The measurement report section won't be included in the template. You can add one when creating a proposal from this template.</span>
+        </div>`;
+    }
+    return html;
+  }
+
+  function pickOpt(opt) {
+    selectedOpt = opt;
+    const a = document.getElementById('cardA');
+    const b = document.getElementById('cardB');
+    if (!a || !b) return;
+    if (opt === 'update') {
+      a.classList.add('sel'); b.classList.remove('sel');
+    } else {
+      b.classList.add('sel'); a.classList.remove('sel');
+      setTimeout(() => document.getElementById('nameInput')?.focus(), 260);
+    }
+  }
+
+  function handleSave() {
+    if (selectedOpt === 'new') {
+      const inp = document.getElementById('nameInput');
+      const name = inp?.value?.trim();
+      if (!name) {
+        inp?.classList.add('err');
+        inp?.focus();
+        setTimeout(() => inp?.classList.remove('err'), 2000);
+        return;
+      }
+      startSaving(() => {
+        const wasSending = fromPresend;
+        fromPresend = false;
+        const msg = catalogItems > 0
+          ? `${catalogItems} line item${catalogItems > 1 ? 's' : ''} added to catalog.`
+          : (wasSending ? 'Template saved.' : 'Ready to use on future proposals.');
+        showToast(`"${name}" saved`, msg, catalogItems > 0);
+        if (wasSending) openSendDrawer();
+      });
+    } else {
+      startSaving(() => {
+        const wasSending = fromPresend;
+        fromPresend = false;
+        const msg = catalogItems > 0
+          ? `${catalogItems} line item${catalogItems > 1 ? 's' : ''} added to catalog.`
+          : (wasSending ? 'Template updated.' : 'Existing proposals are unaffected.');
+        showToast('"Asphalt Shingle Standard" updated', msg, catalogItems > 0);
+        if (wasSending) openSendDrawer();
+      });
+    }
+  }
+
+  function startSaving(onComplete) {
+    const btn = document.getElementById('saveBtn');
+    const cancel = document.getElementById('cancelBtn');
+    btn.classList.add('loading');
+    cancel.disabled = true;
+    cancel.style.opacity = '0.4';
+    setTimeout(() => {
+      closeModal();
+      btn.classList.remove('loading');
+      cancel.disabled = false;
+      cancel.style.opacity = '';
+      onComplete();
+    }, 1600);
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('active');
+  }
+
+  function handleBgClick(e) {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  }
+
+  // Pre-send flow — only shown for scratch proposals
+  function openPresend() {
+    closeMore();
+    if (origin === 'scratch') {
+      document.getElementById('presendOverlay').classList.add('active');
+    } else {
+      openSendDrawer();
+    }
+  }
+
+  function presendNotNow() {
+    document.getElementById('presendOverlay').classList.remove('active');
+    openSendDrawer();
+  }
+
+  function presendSaveTemplate() {
+    document.getElementById('presendOverlay').classList.remove('active');
+    fromPresend = true;
+    openModal();
+  }
+
+  function handlePresendBgClick(e) {
+    if (e.target === document.getElementById('presendOverlay')) presendNotNow();
+  }
+
+  // Send drawer
+  function openSendDrawer() {
+    closeMore();
+    document.getElementById('sendDrawer').classList.add('open');
+  }
+
+  function closeSendDrawer() {
+    document.getElementById('sendDrawer').classList.remove('open');
+  }
+
+  function simulateSend() {
+    closeSendDrawer();
+
+    // Status → Won
+    const tag = document.getElementById('statusDraft');
+    tag.className = 'tag-won';
+    tag.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Won`;
+
+    // Send → Actions (primary with chevron)
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.textContent = '';
+    sendBtn.innerHTML = 'Actions <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5px;stroke-linecap:round;stroke-linejoin:round;margin-left:3px;vertical-align:middle"><polyline points="6 9 12 15 18 9"/></svg>';
+    sendBtn.removeAttribute('onclick');
+
+    // Preview → View
+    const prevBtn = document.getElementById('previewBtn');
+    prevBtn.textContent = 'View';
+
+    // Lock canvas
+    document.querySelector('.canvas-wrap').classList.add('doc-locked');
+  }
+
+  const SUCCESS_ICON = `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  const ERROR_ICON   = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+  function showToast(title, msg, showLink = false) {
+    clearTimeout(toastTimer);
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+    const link = document.getElementById('toastLink');
+    if (showLink) link.classList.add('show');
+    else link.classList.remove('show');
+    const t = document.getElementById('toast');
+    t.classList.remove('toast--error');
+    document.getElementById('toastIcon').innerHTML = SUCCESS_ICON;
+    t.classList.add('show');
+    if (!showLink) toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
+  }
+
+  function dismissToast() {
+    clearTimeout(toastTimer);
+    const t = document.getElementById('toast');
+    t.classList.remove('show');
+    t.classList.remove('toast--error');
+  }
+
+  function showErrorToast(title, msg) {
+    clearTimeout(toastTimer);
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastLink').classList.remove('show');
+    const t = document.getElementById('toast');
+    t.classList.add('toast--error');
+    document.getElementById('toastIcon').innerHTML = ERROR_ICON;
+    t.classList.add('show');
+    toastTimer = setTimeout(() => { t.classList.remove('show'); t.classList.remove('toast--error'); }, 4500);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (document.getElementById('overlay').classList.contains('active')) closeModal();
+    else if (document.getElementById('presendOverlay').classList.contains('active')) presendNotNow();
+    else if (document.getElementById('simOverlay').classList.contains('active')) closeSimModal();
+    else if (document.getElementById('sendDrawer').classList.contains('open')) closeSendDrawer();
+  });
+
+  // Prototype screen navigation
+  function setActiveTab(name) {
+    document.querySelectorAll('.proto-tab').forEach(t => t.classList.remove('active'));
+    const tab = document.getElementById('tab-' + name);
+    if (tab) tab.classList.add('active');
+  }
+
+  function resetEditor() {
+    closeModal();
+    closeMore();
+    document.getElementById('presendOverlay').classList.remove('active');
+    document.getElementById('sendDrawer').classList.remove('open');
+    document.getElementById('simOverlay').classList.remove('active');
+    // Reset won state
+    const tag = document.getElementById('statusDraft');
+    tag.className = 'tag-draft';
+    tag.innerHTML = `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Draft`;
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.textContent = 'Send';
+    sendBtn.setAttribute('onclick', 'openPresend()');
+    document.getElementById('previewBtn').textContent = 'Preview';
+    document.querySelector('.canvas-wrap').classList.remove('doc-locked');
+  }
+
+  function showScreen(name) {
+    setActiveTab(name);
+    resetEditor();
+
+    const editor   = document.getElementById('editorBody');
+    const coverEl  = document.getElementById('coverScreen');
+
+    if (name === 'cover') {
+      coverEl.classList.add('active');
+      editor.style.display = 'none';
+      document.body.classList.add('on-cover');
+    } else {
+      coverEl.classList.remove('active');
+      editor.style.display = '';
+      document.body.classList.remove('on-cover');
+
+      if (name === 'default') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        applyScenario();
+      } else if (name === 'dual') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        applyScenario();
+        openModal();
+      } else if (name === 'single') {
+        document.getElementById('roleSelect').value = 'standard';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        applyScenario();
+        openModal();
+      } else if (name === 'presend') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'scratch';
+        document.getElementById('entrySelect').value = 'menu';
+        applyScenario();
+      } else if (name === 'saving') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        applyScenario();
+        openModal();
+        // Put Save button straight into loading state — no timeout, frozen mid-save
+        setTimeout(() => {
+          const btn = document.getElementById('saveBtn');
+          const cancel = document.getElementById('cancelBtn');
+          if (btn) btn.classList.add('loading');
+          if (cancel) { cancel.disabled = true; cancel.style.opacity = '0.4'; }
+        }, 50);
+      } else if (name === 'profitability') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        document.getElementById('profitSelect').value = 'true';
+        document.getElementById('measureSelect').value = 'false';
+        document.getElementById('catalogSelect').value = '0';
+        applyScenario();
+        openModal();
+      } else if (name === 'measurement') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        document.getElementById('profitSelect').value = 'false';
+        document.getElementById('measureSelect').value = 'true';
+        document.getElementById('catalogSelect').value = '0';
+        applyScenario();
+        openModal();
+      } else if (name === 'catalog') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        document.getElementById('profitSelect').value = 'false';
+        document.getElementById('measureSelect').value = 'false';
+        document.getElementById('catalogSelect').value = '3';
+        applyScenario();
+        // Show the catalog toast directly — simulates a just-completed save
+        showToast('"Asphalt Shingle Standard" updated', '3 line items added to catalog.', true);
+      } else if (name === 'error-toast') {
+        document.getElementById('roleSelect').value = 'owner';
+        document.getElementById('originSelect').value = 'template';
+        document.getElementById('templateExistsSelect').value = 'true';
+        document.getElementById('entrySelect').value = 'menu';
+        applyScenario();
+        // Show error toast directly — simulates a failed save
+        showErrorToast('Save failed', 'Please try again.');
+      }
+    }
+  }
+
+  showScreen('cover');
+  applyScenario();
+</script>
+</body>
+</html>
