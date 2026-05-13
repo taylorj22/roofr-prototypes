@@ -2076,6 +2076,7 @@
   let hasProfit = false;
   let hasMeasurement = false;
   let catalogItems = 0;
+  let showProfitHint = false;
 
   function applyScenario() {
     role   = document.getElementById('roleSelect').value;
@@ -2228,6 +2229,13 @@
 
   function buildHints() {
     let html = '';
+    if (showProfitHint) {
+      html += `
+        <div class="modal-hint modal-hint--info">
+          <svg class="modal-hint-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span class="modal-hint-text">Proposal profitability settings won't be saved to the template. They can be adjusted at the template level.</span>
+        </div>`;
+    }
     if (hasMeasurement) {
       html += `
         <div class="modal-hint modal-hint--warning">
@@ -2417,6 +2425,7 @@
   function resetEditor() {
     closeModal();
     closeMore();
+    showProfitHint = false;
     document.getElementById('presendOverlay').classList.remove('active');
     document.getElementById('sendDrawer').classList.remove('open');
     document.getElementById('simOverlay').classList.remove('active');
@@ -2494,6 +2503,7 @@
         document.getElementById('profitSelect').value = 'true';
         document.getElementById('measureSelect').value = 'false';
         document.getElementById('catalogSelect').value = '0';
+        showProfitHint = true;
         applyScenario();
         openModal();
       } else if (name === 'measurement') {
